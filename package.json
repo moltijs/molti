@@ -1,7 +1,11 @@
 {
   "name": "molti",
-  "version": "0.0.0",
+  "version": "0.0.2",
   "description": "Extendable web framework",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SaaJoh0783/molti.git"
+  },
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
