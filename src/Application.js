@@ -5,7 +5,6 @@ const Parameter = require('./Parameter');
 const Response = require('./Response');
 const DocsRouter = require('./DocsRouter');
 
-
 let defaultErrorHandler = (err, req, res, next) => {
   res.status(500).send(err);
 };
