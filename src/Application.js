@@ -9,7 +9,7 @@ let defaultErrorHandler = (err, req, res, next) => {
   res.status(500).send(err);
 };
 
-class Application {
+class Application extends express {
   /**
    * Creates an instance of Framework.
    * @param {Controller[]} controllers The controllers for this application
@@ -17,6 +17,7 @@ class Application {
    * @memberOf Framework
    */
   constructor(options={}) {
+    super();
     Object.assign(this, express());
 
     let {
