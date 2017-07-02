@@ -80,4 +80,25 @@ describe('ModelLoader', () => {
   it('should preserve methods from classes', () => {
     expect(loader.mappedModels.tenant_1.classB.shouldRemainHere()).to.be.eql(loader.mappedModels.tenant_2.classB.shouldRemainHere());
   });
+
+  it('should be able to use the helper via an attribute', () => {
+    let sampleRequest = {
+      someAttribute: 'tenant_1'
+    };
+    let binding = {};
+
+    let helper = loader.helper('someAttribute');
+    helper.bind(binding)(sampleRequest);
+    expect(loader.mappedModels.tenant_1).to.equal(binding.models);
+  });
+
+  it('should be able to use the helper via a function call', () => {
+    let sampleRequest = {
+      someAttribute: 'tenant_1'
+    };
+    let binding = {};
+    let helper = loader.helper(req => req['someAttribute']);
+    helper.bind(binding)(sampleRequest);
+    expect(loader.mappedModels.tenant_1).to.equal(binding.models);
+  });
 });

@@ -33,11 +33,13 @@ class Application extends express {
       docsPath = '/docs/',
       paths = {},
       info = {},
-      definitions = {}
+      definitions = {},
+      utils = []
     } = options;
 
     this.controllers = controllers;
     this._name = name;
+    this._utils = utils;
     this._description = description;
     this._version = version;
     this._host = host;

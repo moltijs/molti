@@ -9,11 +9,9 @@ let isExpressRouter = (router) => {
 };
 
 let ApplicationConfig = {
-  basePath: '/sample',
-  tag: ['Sample'],
-  handlers: [],
-  description: 'Some description',
-  errorHandler(){}
+  name: 'Sample',
+  description: 'Sample Description',
+  docsPath: '/docs/'
 };
 
 describe('Application', () => {
@@ -23,20 +21,12 @@ describe('Application', () => {
   });
 
   it('should be able to init', () => {
-    expect(sampleApplication._basePath)
-      .to.equal(ApplicationConfig.basePath);
+
+    expect(sampleApplication._name)
+      .to.equal(ApplicationConfig.name);
 
     expect(sampleApplication._description)
       .to.equal(ApplicationConfig.description);
-
-    expect(sampleApplication._handlers)
-      .to.equal(ApplicationConfig.handlers);
-
-    expect(sampleApplication.errorHandler)
-      .to.equal(ApplicationConfig.errorHandler);
-    
-    expect(sampleApplication._tag)
-      .to.equal(ApplicationConfig.tag);
   });
 
   it('should look into sibling classes', () => {
@@ -56,14 +46,15 @@ describe('Application', () => {
     let subConfig = {
       controllers: [{
         attachToApp(app) {
-          expect(app).to.equal(parentApp);
+          parentApp = app;
           fired = true;
         }
       }]
     };
 
-    parentApp = new Application(subConfig);
+    const app = new Application(subConfig);
     expect(fired).to.be.true;
+    expect(app).to.equal(parentApp);
   });
 
   it('should represent an express app', () => {

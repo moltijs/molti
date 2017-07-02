@@ -169,6 +169,18 @@ describe('Model', () => {
       expect(saveResult.id).to.be.greaterThan(0);
     });
 
+    it('should have a static create method', async() => {
+      let result = await TestModel.create({
+        name: 'name'
+      });
+
+      expect(result.name).to.equal('name');
+
+      let dbResult = await TestModel.findById(result.id);
+
+      expect(dbResult.id).to.equal(result.id);
+    });
+
     it('should support model validation', async () => {
       let newModel = new TestModel({
         name: 'name'
@@ -225,7 +237,7 @@ describe('Model', () => {
     });
 
     it('should be able to query via function call', async () => {
-      let results = await TestModel.find('*', query => {
+      let results = await TestModel.find(query => {
         query.where('id', '>', 1);
       });
       
@@ -238,7 +250,7 @@ describe('Model', () => {
 
 
     it('should be able to query via query object', async () => {
-      let results = await TestModel.find('*', {id: 1});
+      let results = await TestModel.find({id: 1});
 
       results.forEach(model => {
         expect(model.id).to.be.equal(1);
@@ -249,7 +261,7 @@ describe('Model', () => {
 
 
     it('should be able to query via query object', async () => {
-      let results = await TestModel.find('*', {id: 1});
+      let results = await TestModel.find({id: 1});
 
       results.forEach(model => {
         expect(model.id).to.be.equal(1);
@@ -259,7 +271,7 @@ describe('Model', () => {
     });
 
     it('should return an empty array if no results', async () => {
-      let results = await TestModel.find('*', query => {
+      let results = await TestModel.find(query => {
         query.where('id', '<', 1);
       });
       
@@ -278,12 +290,18 @@ describe('Model', () => {
         deletedAt: new Date()
       }]);
 
-      let results = await TestModel.find('*', query => {
+      let results = await TestModel.find(query => {
         query.where('name', 'deleted row');
       });
       
       expect(results).to.be.eql([]);
       TestModel = _TestModel;
+    });
+
+    it('should support serialization', async () => {
+      let [result] = await TestModel.find({});
+
+      expect(result.toJSON()).to.equal(JSON.stringify(result._props));
     });
   });
   describe('updating data', () => {
@@ -295,6 +313,7 @@ describe('Model', () => {
 
       return newModel.save();
     });
+
     
     it('should be able to update data', async () => {
       newModel.name = 'new_name';
@@ -303,6 +322,20 @@ describe('Model', () => {
       expect(result).to.be.equal(newModel);
       let dbModel = await TestModel.knex(testTable).select('name').where('id', result.id);
       expect(dbModel[0].name).to.be.equal(result.name);
+    });
+
+    it('should have a static method for updating data', async () => {
+      let name = 'some other new name';
+      await TestModel.update({ id: newModel.id }, { name });
+      let updatedResult = await TestModel.findById(newModel.id);
+      expect(updatedResult.name).to.equal(name);
+    });
+
+    it('should support a function for an update query', async () => {
+      let name = 'some other new name';
+      await TestModel.update(q => q.where('id', newModel.id), { name });
+      let updatedResult = await TestModel.findById(newModel.id);
+      expect(updatedResult.name).to.equal(name);
     });
 
     it('should be able to soft delete data', async () => {
@@ -353,6 +386,18 @@ describe('Model', () => {
       expect(dbModel).to.be.eql([]);
     });
 
+
+    it('should have a static delete method', async () => {
+      let newRecord = await TestModel.create(newModel._props);
+      await TestModel.remove({id: newRecord.id});
+
+      let dbModel = await TestModel.knex(testTable)
+        .select('*')
+        .where('id', newRecord.id);
+
+      expect(dbModel).to.be.eql([]);
+    });
+
     it('should block restores on hard delete models', async () => {
       let error;
 
@@ -366,7 +411,99 @@ describe('Model', () => {
     });
   });
 
+
   after(() => {
     return knex.schema.dropTable(testTable);
+  });
+});
+
+describe('relating', () => {
+  before(async () => {
+    await Promise.all([
+      knex.schema.createTable('table1', table => {
+        table.increments('id').primary().notNullable();
+        table.integer('table2Id');
+      }),
+      knex.schema.createTable('table2', table => {
+        table.increments('id').primary().notNullable();
+      })
+    ]);
+  });
+  describe('has many and belongs to', () => {
+    let schema1 = new Schema({
+      id: Number,
+      table2Id: Number
+    });
+    let schema2 = new Schema({
+      id: Number
+    });
+    let table1 = Model('table1', schema1);
+    let table2 = Model('table2', schema2);
+    let registry = {
+      table1,
+      table2
+    };
+
+    table1.knex = knex;
+    table1.attachToRegistry(registry);
+
+    table2.knex = knex;
+    table2.attachToRegistry(registry);
+
+    before(() => {
+      return Promise.all([
+        knex('table1').insert([{
+          id: 1,
+          table2Id: 1
+        }, {
+          id: 2,
+          table2Id: 1
+        }]),
+        knex('table2').insert([{
+          id: 1
+        }])
+      ]);
+    });
+
+    it('should have attached the registry properly', () => {
+      expect(table2.registry).to.equal(registry);
+      expect(registry.table2).to.equal(table2);
+      expect(table2.registry.table1).to.equal(table1);
+    });
+
+    it('should be able to retrieve a has many', async () => {
+      let parent = new table2({
+        id: 1
+      });
+
+      let children = await parent.pullAll('table1');
+
+      expect(children.length).to.greaterThan(1);
+
+      children.forEach(child => {
+        expect(child.table2Id).to.be.equal(parent.id);
+        expect(child).to.be.instanceof(table1);
+      });
+    });
+
+    it('should be able to retrieve a belongs to', async () => {
+      let child = new table1({
+        id: 2,
+        table2Id: 1
+      });
+
+      let parent = await child.pullOnly('table2');
+
+      expect(parent.id).to.equal(child.table2Id);
+      expect(parent).to.be.instanceOf(table2);
+    });
+
+
+    after(async () => {
+      await Promise.all([
+        knex.schema.dropTable('table1'),
+        knex.schema.dropTable('table2')
+      ]);
+    });
   });
 });

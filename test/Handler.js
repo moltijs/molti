@@ -30,6 +30,9 @@ describe('Handler', () => {
     let mockController = {
       get: (handler) => {
         expect(handler).to.be.equal(sampleHandler);
+      },
+      _app: {
+        _utils: []
       }
     };
     sampleHandler.attachToController(mockController);
@@ -68,6 +71,9 @@ describe('Handler', () => {
     sampleHandler._controller = {
       errorHandler(err){
         throw err;
+      },
+      _app: {
+        _utils: []
       }
     };
 
@@ -89,6 +95,9 @@ describe('Handler', () => {
     sampleHandler._controller = {
       errorHandler(err){
         throw err;
+      },
+      _app: {
+        _utils: []
       }
     };
 
@@ -114,7 +123,7 @@ describe('Handler', () => {
     await sampleHandler.getRouteHandler()({}, mockResponse, null);
   });
 
-  it('go through the error handler', async () => {
+  it('should go through the error handler', async () => {
 
     let mockResponse = {
       status: code => ({send: () => expect(code).to.be.equal(400)})
@@ -130,9 +139,46 @@ describe('Handler', () => {
       errorHandler(err){
         expect(err).to.be.instanceOf(Error);
         expect(err.message).to.be.equal('should be here');
+      },
+      _app: {
+        _utils: []
       }
     };
 
     await sampleHandler.getRouteHandler()({}, mockResponse, null);
+  });
+
+
+  it('should application utils', async () => {
+    let mockResponse = {
+      status: () => ({send(){}})
+    };
+    let something = 'something';
+    let fired = false;
+    let sampleHandler = new Handler({
+      handler(params, responses, utils) {
+        expect(utils.something).to.equal(something);
+        fired = true;
+        return {};
+      },
+      params: [],
+      responses: []
+    });
+    
+
+    sampleHandler._controller = {
+      errorHandler(){},
+      _app: {
+        _utils: [
+          function (req) {
+            this.something = req.something;
+          }
+        ]
+      }
+    };
+
+    await sampleHandler.getRouteHandler()({ something }, mockResponse, null);
+
+    expect(fired).to.be.true;
   });
 });

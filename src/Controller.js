@@ -1,6 +1,7 @@
 //@ts-check
-const { isUndefined, map } = require('lodash');
+const { isNil, pluck } = require('ramda');
 const { Router } = require('express');
+const { Handler } = require('.');
 
 class Controller {
   /**
@@ -63,6 +64,10 @@ class Controller {
     app.use(this._basePath, this._router);
   }
 
+  handler(config) {
+    return new Handler(config).attachToController(this);
+  }
+
   _handle(handler) {
     handler._controller = this;
 
@@ -70,7 +75,7 @@ class Controller {
     let basePath = (this._basePath + handler.path).replace(/\/\//g, '/');
 
     /* istanbul ignore else */
-    if (isUndefined(this._paths[basePath])) {
+    if (isNil(this._paths[basePath])) {
       this._paths[basePath] = {};
     }
 
@@ -123,7 +128,7 @@ class Controller {
         .filter(paramResult =>  !paramResult.valid);
 
       if (invalidParams.length > 0) {
-        return res.status(400).send({success: false, message: map(invalidParams, 'reason').join()});
+        return res.status(400).send({success: false, message: pluck('reason')(invalidParams).join()});
       }
 
       next();

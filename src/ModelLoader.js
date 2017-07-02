@@ -1,4 +1,6 @@
 const Knex = require('knex');
+const R = require('ramda');
+
 /**
  * @typedef {Object.<string, function>} ModelMap
  * 
@@ -58,6 +60,15 @@ class ModelLoader {
     return this.mappedModels = mappings;
   }
 
+  helper (tenantIdExtractor) {
+    if (!R.is(Function)(tenantIdExtractor)) {
+      tenantIdExtractor = R.view(R.lensPath(tenantIdExtractor.split('.')));
+    }
+    let { mappedModels: models } = this;
+    return function (req) {
+      return this.models = models[tenantIdExtractor(req)];
+    };
+  }
 }
 
 exports.ModelLoader = ModelLoader;

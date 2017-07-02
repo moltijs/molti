@@ -1,6 +1,4 @@
 const { isUndefined, isObject, isFunction } = require('lodash');
-const Controller = require('./Controller');
-const HandlerUtil = require('./HandlerUtil');
 
 /**
  * 
@@ -62,6 +60,7 @@ class Handler {
 
   attachToController(ctrl) {
     ctrl[this.method](this);
+    return this;
   }
 
   getRouteHandler() {
@@ -85,7 +84,8 @@ class Handler {
         let errorHandler = this._controller.errorHandler;
 
         try {
-          let utils = new HandlerUtil(req);
+          let utils = {};
+          this._controller._app._utils.forEach(util => util.call(utils, req));
           let result = await this.handler(paramObj, responses, utils, req, res, next);
           if (isUndefined(result)) {
             res.status(500).send(`No result for ${this.path}`);
