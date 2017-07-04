@@ -233,12 +233,12 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       }
 
       if (timestamps) {
-        const timestampColumn = this[this._persisted ? updatedAtColumn : createdAtColumn] ||
+        const timestampColumn = (this._persisted ? updatedAtColumn : createdAtColumn) ||
           this.constructor._guessColumnName(
             this._persisted ? 'updated': 'created',
             'at'
           );
-        this._changes[timestampColumn] = this._props[timestampColumn] = Date.now();
+        this._props[timestampColumn] = Date.now();
       }
 
       if (this._persisted) {
@@ -250,9 +250,9 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
         let [id] = await this.knex(tableName).insert(this._props);
 
         this._props[idColumn] = id;
-        this._setProps(this._props);
         this._persisted = true;
       }
+      this._setProps(this._props);
       return this;
     }
 

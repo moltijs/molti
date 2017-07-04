@@ -35,6 +35,8 @@ describe('Model', () => {
       table.increments(config.idColumn).primary().notNullable();
       table.string('name');
       table.dateTime('deletedAt').nullable();
+      table.dateTime('created_at').nullable();
+      table.dateTime('updated_at').nullable();
     });
   });
   describe('configuration', () => {
@@ -169,7 +171,7 @@ describe('Model', () => {
       expect(saveResult.id).to.be.greaterThan(0);
     });
 
-    it('should have a static create method', async() => {
+    it('should have a static create method', async () => {
       let result = await TestModel.create({
         name: 'name'
       });
@@ -197,6 +199,20 @@ describe('Model', () => {
       expect(error[0].keyword).to.be.equal('required');
       expect(error[0].message).to.contain('name');
     });
+
+    it('should support created at timestamp', async () => {
+      let TestModel = Model(testTable, testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at' }, testConfig));
+      TestModel.knex = knex;
+
+      let result = await TestModel.create({
+        name: 'testing created at'
+      });
+
+
+      expect(result.created_at).to.be.greaterThan(0);
+      expect(result.created_at).not.to.be.greaterThan(Date.now());
+    });
+
     after(async () => {
       await TestModel.knex(testTable).truncate();
     });
@@ -336,6 +352,21 @@ describe('Model', () => {
       await TestModel.update(q => q.where('id', newModel.id), { name });
       let updatedResult = await TestModel.findById(newModel.id);
       expect(updatedResult.name).to.equal(name);
+    });
+
+    it('should support updated at timestamp', async () => {
+      let TestModel = Model(testTable, testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at', updatedAtColumn: 'updated_at' }, testConfig));
+      TestModel.knex = knex;
+
+      let result = await TestModel.create({
+        name: 'testing created at'
+      });
+
+      result.name = 'testing updated at';
+
+      await result.save();
+
+      expect(result.updated_at).not.to.be.lessThan(result.created_at);
     });
 
     it('should be able to soft delete data', async () => {
