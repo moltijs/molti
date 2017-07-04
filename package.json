@@ -9,8 +9,9 @@
   "main": "src/index.js",
   "license": "MIT",
   "scripts": {
-    "test": "NODE_ENV=test nyc _mocha --timeout 12000 test",
-    "test-watch": "nodemon -w test -w src --exec \"npm test\""
+    "test:individual": "NODE_ENV=test nyc _mocha --timeout 12000",
+    "test": "npm run test:individual test",
+    "test:watch": "nodemon -w test -w src --exec \"npm test\""
   },
   "dependencies": {
     "@types/mongoose": "^4.7.18",

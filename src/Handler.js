@@ -45,7 +45,8 @@ class Handler {
       responses = [],
       handler,
       before = [],
-      after = []
+      after = [],
+      skipDocs = false
     } = options;
 
     this.path = path;
@@ -56,6 +57,7 @@ class Handler {
     this.responses = responses;
     this.before = before;
     this.after = after;
+    this.skipDocs = skipDocs;
   }
 
   attachToController(ctrl) {
@@ -85,7 +87,9 @@ class Handler {
 
         try {
           let utils = {};
-          this._controller._app._utils.forEach(util => util.call(utils, req));
+
+          this._controller._app._utils.forEach(async util => await util.call(utils, req));
+
           let result = await this.handler(paramObj, responses, utils, req, res, next);
           if (isUndefined(result)) {
             res.status(500).send(`No result for ${this.path}`);

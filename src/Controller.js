@@ -78,16 +78,17 @@ class Controller {
     if (isNil(this._paths[basePath])) {
       this._paths[basePath] = {};
     }
-
-    this._paths[basePath][handler.method] = {
-      summary: description,
-      tags: this._tag,
-      parameters: handler.params.map(param => param.toSwagger()),
-      responses: handler.responses.reduce((responses, resp) => {
-        responses[resp.statusCode] = resp.toSwagger();
-        return responses;
-      }, {})
-    };
+    if (!handler.skipDocs) {
+      this._paths[basePath][handler.method] = {
+        summary: description,
+        tags: this._tag,
+        parameters: handler.params.map(param => param.toSwagger()),
+        responses: handler.responses.reduce((responses, resp) => {
+          responses[resp.statusCode] = resp.toSwagger();
+          return responses;
+        }, {})
+      };
+    }
     let routeHandler = handler.getRouteHandler().bind(handler);
     return this._router[handler.method](handler.path, ...handler.before, routeHandler, ...handler.after);
   }

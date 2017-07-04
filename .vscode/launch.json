@@ -3,39 +3,21 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": [{
-    "type": "node",
-    "request": "launch",
-    "name": "Mocha Tests",
-    "runtimeExecutable": "node",
-    "program": "${workspaceRoot}/node_modules/.bin/nyc",
-    "args": [
-      "${workspaceRoot}/node_modules/.bin/_mocha",
-      "-u",
-      "tdd",
-      "--timeout",
-      "999999",
-      "--colors",
-      "${workspaceRoot}/test"
-    ],
-    "internalConsoleOptions": "openOnSessionStart",
-    "protocol": "inspector"
-  }, {
-    "type": "node",
-    "request": "launch",
-    "name": "Mocha Test Current File",
-    "runtimeExecutable": "node",
-    "program": "${workspaceRoot}/node_modules/.bin/nyc",
-    "args": [
-      "${workspaceRoot}/node_modules/.bin/_mocha",
-      "-u",
-      "tdd",
-      "--timeout",
-      "999999",
-      "--colors",
-      "${file}"
-    ],
-    "internalConsoleOptions": "openOnSessionStart",
-    "protocol": "inspector"
-  }]
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests",
+      "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceRoot}/test"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
 }
