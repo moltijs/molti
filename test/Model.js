@@ -1,4 +1,4 @@
-let { Model } = require('../src/Model');
+let { Model } = require('../src/');
 const { Schema } = require('mongoose');
 const { expect } = require('chai');
 
@@ -417,19 +417,8 @@ describe('Model', () => {
   });
 });
 
-describe('relating', () => {
-  before(async () => {
-    await Promise.all([
-      knex.schema.createTable('table1', table => {
-        table.increments('id').primary().notNullable();
-        table.integer('table2Id');
-      }),
-      knex.schema.createTable('table2', table => {
-        table.increments('id').primary().notNullable();
-      })
-    ]);
-  });
-  describe('has many and belongs to', () => {
+describe('relationships', () => {
+  describe('without join', () => {
     let schema1 = new Schema({
       id: Number,
       table2Id: Number
@@ -450,7 +439,16 @@ describe('relating', () => {
     table2.knex = knex;
     table2.attachToRegistry(registry);
 
-    before(() => {
+    before(async () => {
+      await Promise.all([
+        knex.schema.createTable('table1', table => {
+          table.increments('id').primary().notNullable();
+          table.integer('table2Id');
+        }),
+        knex.schema.createTable('table2', table => {
+          table.increments('id').primary().notNullable();
+        })
+      ]);
       return Promise.all([
         knex('table1').insert([{
           id: 1,
@@ -486,6 +484,18 @@ describe('relating', () => {
       });
     });
 
+    it('should be able to eagerly fetch many related records', async () => {
+      table2.prototype.child = function () {
+        return this.hasMany('table1');
+      };
+
+      let parent = await table2.findById(1, {
+        withRelated: ['child']
+      });
+
+      expect(parent.child().length).to.be.greaterThan(0);
+    });
+
     it('should be able to retrieve a belongs to', async () => {
       let child = new table1({
         id: 2,
@@ -499,11 +509,265 @@ describe('relating', () => {
     });
 
 
+    it('should be able to eagerly fetch one related record', async () => {
+      table1.prototype.parent = function () {
+        return this.belongsTo('table2');
+      };
+
+      let child = await table1.findById(1, {
+        withRelated: ['parent']
+      });
+
+      expect(child.parent()).to.be.instanceof(table2);
+    });
+
     after(async () => {
       await Promise.all([
         knex.schema.dropTable('table1'),
         knex.schema.dropTable('table2')
       ]);
+    });
+  });
+
+  describe('with join', () => {
+
+    let table1Schema = new Schema({id: Number});
+    let table2Schema = new Schema({id: Number});
+
+    class Table1 extends Model('table1', table1Schema) {
+      table2() {
+        return this.hasMany('table1', {
+          through: 'table1Table2'
+        });
+      }
+    }
+
+    class Table2 extends Model('table2', table2Schema) {
+      table1() {
+        return this.hasMany('table1', {
+          through: 'table1Table2'
+        });
+      }
+    }
+
+    let registry = {
+      table1: Table1,
+      table2: Table2
+    };
+
+    Table1.knex = Table2.knex = knex;
+    Table1.registry = Table2.registry = registry;
+
+    before(async () => {
+      await Promise.all([
+        knex.schema.createTable('table1', table => table.increments('id')),
+        knex.schema.createTable('table1Table2', table => {
+          table.integer('table1Id');
+          table.integer('table2Id');
+        }),
+        knex.schema.createTable('table2', table => table.increments('id'))
+      ]);
+
+      return Promise.all([
+        knex('table1').insert([{
+          id: 1
+        }, {
+          id: 2
+        }, {
+          id: 3
+        }]),
+        knex('table2').insert([{
+          id: 1
+        }, {
+          id: 2
+        }, {
+          id: 3
+        }]),
+        knex('table1Table2').insert([{
+          table1Id: 1,
+          table2Id: 1
+        }, {
+          table1Id: 2,
+          table2Id: 1
+        }, {
+          table1Id: 1,
+          table2Id: 2
+        }, {
+          table1Id: 2,
+          table2Id: 2
+        }, {
+          table1Id: 1,
+          table2Id: 3
+        }])
+      ]);
+    });
+
+    it('should be able to find many through a join table', async () => {
+      let table1Instance = await Table1.findById(1);
+
+      let table2Instances = await table1Instance.pullAll('table2', {
+        through: 'table1Table2'
+      });
+
+      expect(table2Instances.length).to.equal(3);
+    });
+
+    it('should be able to guess the intermediate table', async () => {
+      let table1Instance = await Table1.findById(1);
+      let table2Instances = await table1Instance.pullAll('table2', {
+        through: true
+      });
+
+      expect(table2Instances.length).to.equal(3);
+    });
+
+    it('should be able to find many through a join table eagerly', async () => {
+      let [table1Instance1, table1Instance2, table1Instance3] = await Table1.find({}, {
+        withRelated: ['table2']
+      });
+
+      expect(table1Instance1.table2().length).to.equal(3);
+      expect(table1Instance2.table2().length).to.equal(2);
+      expect(table1Instance3.table2().length).to.equal(0);
+    });
+
+    after(() => {
+      return Promise.all([
+        knex.schema.dropTable('table1'),
+        knex.schema.dropTable('table1Table2'),
+        knex.schema.dropTable('table2')
+      ]);
+    });
+  });
+
+  describe('with depth', () => {
+    let table1Schema = new Schema({
+      id: Number
+    });
+    let table2Schema = new Schema({
+      id: Number,
+      table1Id: Number
+    });
+    let table3Schema = new Schema({
+      id: Number,
+      table2Id: Number,
+      table4Id: Number
+    });
+    let table4Schema = new Schema ({
+      id: Number
+    });
+
+    class Table1 extends Model('table1', table1Schema) {
+      table2 () {
+        return this.hasMany('table2');
+      }
+    }
+
+    class Table2 extends Model('table2', table2Schema) {
+      table1 () {
+        return this.belongsTo('table1');
+      }
+      table3 () {
+        return this.hasMany('table3');
+      }
+    }
+    
+    class Table3 extends Model('table3', table3Schema) {
+      table2 () {
+        return this.belongsTo('table2');
+      }
+
+      table4 () {
+        return this.belongsTo('table4');
+      }
+    }
+
+    const Table4 = Model('table4', table4Schema);
+
+    let registry = {
+      table1: Table1,
+      table2: Table2,
+      table3: Table3,
+      table4: Table4
+    };
+
+    Table1.registry = Table2.registry = Table3.registry = Table4.registry = registry;
+    Table1.knex = Table2.knex = Table3.knex = Table4.knex = knex;
+
+    before(async () => {
+      await Promise.all([
+        knex.schema.createTable('table1', table => table.increments('id')),
+        knex.schema.createTable('table2', (table) => {
+          table.increments('id');
+          table.integer('table1Id');
+        }),
+        knex.schema.createTable('table3', (table) => {
+          table.increments('id');
+          table.integer('table2Id');
+          table.integer('table4Id');
+        }),
+        knex.schema.createTable('table4', table => table.increments('id'))
+      ]);
+
+      return Promise.all([
+        knex('table1').insert([{
+          id: 1
+        }]),
+        knex('table2').insert([{
+          id: 1,
+          table1Id: 1
+        }, {
+          id: 2,
+          table1Id: 1
+        }]),
+        knex('table3').insert([{
+          id: 1,
+          table2Id: 1,
+          table4Id: 1
+        }, {
+          id: 2,
+          table2Id: 1,
+          table4Id: 2
+        }, {
+          id: 3,
+          table2Id: 2,
+          table4Id: 1
+        }, {
+          id: 4,
+          table2Id: 2,
+          table4Id: 2
+        }]),
+        knex('table4').insert([{
+          id: 1
+        }, {
+          id: 2
+        }])
+      ]);
+    });
+
+    it('should be able fetch three layers deep', async () => {
+      let table1Instance = await Table1.findById(1, {
+        withRelated: ['table2.table3.table4']
+      });
+      
+      expect(table1Instance).to.be.instanceOf(Table1);
+
+      const table2Instances = table1Instance.table2();
+      expect(table2Instances.length).to.equal(2);
+
+      table2Instances.forEach(table2Instance => {
+        table2Instance;
+        expect(table2Instance).to.be.instanceof(Table2);
+        expect(table2Instance.table3().length).to.equal(2);
+        table2Instance.table3().forEach(table3Instance => {
+          expect(table3Instance).to.be.instanceof(Table3);
+
+          let expectedTable4Id = table3Instance.id % 2 === 0 ? 2 : 1;
+
+          expect(table3Instance.table4()).to.be.instanceof(Table4);
+          expect(table3Instance.table4().id).to.equal(expectedTable4Id);
+        });
+      });
     });
   });
 });
