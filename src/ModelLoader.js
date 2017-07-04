@@ -1,5 +1,5 @@
 const Knex = require('knex');
-const R = require('ramda');
+const { is, view, lensPath } = require('ramda');
 
 /**
  * @typedef {Object.<string, function>} ModelMap
@@ -18,10 +18,11 @@ class ModelLoader {
    * @param {any[]} models Initial models to be loaded
    * @memberOf ModelLoader
    */
-  constructor(originKnexConfig, models=[]) {
+  constructor(originKnexConfig, models=[], dbTenantColumn = 'tenant') {
     this.origin = Knex(originKnexConfig);
     this.models = models;
     this.mappedModels = {};
+    this.dbTenantColumn = dbTenantColumn;
   }
   /**
    * Pulls and associates the client level databases
@@ -46,10 +47,10 @@ class ModelLoader {
     const mappings = {};
 
     this.dbs.forEach(db => {
-      mappings[db.tenant] = {};
+      mappings[db[this.dbTenantColumn]] = {};
 
       this.models.forEach(model => {
-        mappings[db.tenant][model.name] = class extends model {
+        mappings[db[this.dbTenantColumn]][model.name] = class extends model {
           static get knex() {
             return db.knex;
           }
@@ -61,8 +62,8 @@ class ModelLoader {
   }
 
   helper (tenantIdExtractor) {
-    if (!R.is(Function)(tenantIdExtractor)) {
-      tenantIdExtractor = R.view(R.lensPath(tenantIdExtractor.split('.')));
+    if (!is(Function)(tenantIdExtractor)) {
+      tenantIdExtractor = view(lensPath(tenantIdExtractor.split('.')));
     }
     let { mappedModels: models } = this;
     return function (req) {
