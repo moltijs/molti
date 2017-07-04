@@ -301,7 +301,7 @@ describe('Model', () => {
     it('should support serialization', async () => {
       let [result] = await TestModel.find({});
 
-      expect(result.toJSON()).to.equal(JSON.stringify(result._props));
+      expect(JSON.parse(JSON.stringify(result))).to.eql(result._props);
     });
   });
   describe('updating data', () => {

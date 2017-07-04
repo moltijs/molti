@@ -286,7 +286,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
     }
 
     toJSON() {
-      return JSON.stringify(this._props);
+      return this._props;
     }
 
     validate() {
