@@ -105,8 +105,8 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
 
     static _guessColumnName(table, column = this.registry[table].idColumn) {
       return underscored ?
-        (table + '_' + column) :
-        (table + column[0].toUpperCase() + column.slice(1));
+        (table[0].toLowerCase() + table.slice(1) + '_' + column) :
+        (table[0].toLowerCase() + table.slice(1) + column[0].toUpperCase() + column.slice(1));
     }
 
     static create(props) {

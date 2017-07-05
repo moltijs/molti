@@ -72,4 +72,4 @@ class ModelLoader {
   }
 }
 
-exports.ModelLoader = ModelLoader;
+module.exports = ModelLoader;

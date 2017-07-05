@@ -1,4 +1,4 @@
-const { ModelLoader } = require('../src/ModelLoader');
+const { ModelLoader } = require('../src/');
 const { expect } = require('chai');
 const Knex = require('knex');
 
