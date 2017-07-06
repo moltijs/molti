@@ -209,8 +209,8 @@ describe('Model', () => {
       });
 
 
-      expect(result.created_at).to.be.greaterThan(0);
-      expect(result.created_at).not.to.be.greaterThan(Date.now());
+      expect(result.created_at.getTime()).to.be.greaterThan(0);
+      expect(result.created_at.getTime()).not.to.be.greaterThan(Date.now());
     });
 
     after(async () => {
@@ -366,7 +366,7 @@ describe('Model', () => {
 
       await result.save();
 
-      expect(result.updated_at).not.to.be.lessThan(result.created_at);
+      expect(result.updated_at.getTime()).not.to.be.lessThan(result.created_at.getTime());
     });
 
     it('should be able to soft delete data', async () => {

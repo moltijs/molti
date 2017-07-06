@@ -24,6 +24,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
   let jsonSchema = schema;
   if (isFunction(schema.jsonSchema)) {
     jsonSchema = schema.jsonSchema();
+    delete jsonSchema.properties._id;
   }
 
   const ajv = new AJV({
@@ -238,7 +239,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
             this._persisted ? 'updated': 'created',
             'at'
           );
-        this._props[timestampColumn] = Date.now();
+        this._props[timestampColumn] = new Date();
       }
 
       if (this._persisted) {
