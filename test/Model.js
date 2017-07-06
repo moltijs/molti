@@ -201,7 +201,7 @@ describe('Model', () => {
     });
 
     it('should support created at timestamp', async () => {
-      let TestModel = Model(testTable, testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at' }, testConfig));
+      let TestModel = Model(testTable, testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at', updatedAtColumn: 'updated_at' }, testConfig));
       TestModel.knex = knex;
 
       let result = await TestModel.create({
