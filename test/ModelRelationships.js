@@ -18,7 +18,6 @@ describe('Single Relationships', () => {
     },
     children: {
       type: Schema.Types.Models,
-      relatedModel: 'Child'
     }
   });
 
@@ -29,7 +28,6 @@ describe('Single Relationships', () => {
     },
     parent: {
       type: Schema.Types.Model,
-      relatedModel: 'Parent'
     }
   });
 
@@ -50,11 +48,7 @@ describe('Single Relationships', () => {
   Parent.attachToRegistry(registry);
   Child.attachToRegistry(registry);
 
-  it ('should have attached to the registry properly', () => {
-    expect(Parent.registry).to.equal(registry);
-    expect(Child.registry).to.equal(registry);
-  });
-
+  
   before(async () => {
     await Promise.all([
       knex.schema.createTable('Parents', table => {
@@ -65,7 +59,7 @@ describe('Single Relationships', () => {
         table.integer('parentId');
       })
     ]);
-
+    
     await Promise.all([
       knex('Parents').insert([{
         id: 1
@@ -88,9 +82,14 @@ describe('Single Relationships', () => {
     ]);
   });
 
+  it ('should have attached to the registry properly', () => {
+    expect(Parent.registry).to.equal(registry);
+    expect(Child.registry).to.equal(registry);
+  });
+  
   describe('as a parent', async () => {
     let parent;
-
+    
     before(async () => {
       parent = await Parent.findById(1, {
         withRelated: ['children']
@@ -165,7 +164,6 @@ describe('Join Relationships', () => {
   const courseSchema = new Schema({
     students: {
       type: Schema.Types.Models,
-      relatedModel: 'Student',
       through: 'StudentCourses'
     }
   });
@@ -179,7 +177,6 @@ describe('Join Relationships', () => {
   const studentSchema = new Schema({
     courses: {
       type: Schema.Types.Models,
-      relatedModel: 'Course',
       through: 'StudentCourses'
     }
   });
@@ -270,7 +267,6 @@ describe('Deep Relationships', () => {
   const principalSchema = new Schema({
     teachers: {
       type: Schema.Types.Models,
-      relatedModel: 'Teacher'
     }
   });
   class Principal extends Model(principalSchema) {
@@ -282,11 +278,9 @@ describe('Deep Relationships', () => {
   const teacherSchema = new Schema({
     principal: {
       type: Schema.Types.Model,
-      relatedModel: 'Principal'
     },
     students: {
       type: Schema.Types.Models,
-      relatedModel: 'Student'
     }
   });
   class Teacher extends Model(teacherSchema) {
@@ -298,7 +292,6 @@ describe('Deep Relationships', () => {
   const studentSchema = new Schema({
     teacher: {
       type: Schema.Types.Model,
-      relatedModel: 'Teacher'
     }
   });
   class Student extends Model(studentSchema) {

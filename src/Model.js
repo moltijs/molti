@@ -168,10 +168,16 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
         let { relatedModel } = relDef;
 
+        if (!relatedModel) {
+          relatedModel = inflect.singularize(relatedAttr[0].toUpperCase() + relatedAttr.slice(1));
+        }        
+        
         if (isString(relatedModel)) relatedModel = this.registry[relatedModel];
-
+        
         relDef.localField = relDef.localField || (relDef.type === Types.Models ? idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
-
+        
+        relDef.relatedModel = relatedModel;
+  
         let results = await this._pullRelated(relDef, true);
         let relatedRelDef;
 
@@ -369,10 +375,6 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
       instances
     }) {
       const many = type === Types.Models;
-
-      if (isString(relatedModel)) {
-        relatedModel = this.registry[relatedModel];
-      }
 
       if (!relatedModel) {
         throw new ReferenceError('Unknown table ' + relatedModel);
