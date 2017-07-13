@@ -426,6 +426,15 @@ describe('Multiple Relationships', () => {
       type: Schema.Types.Model,
       relatedModel: 'Parent',
       localField: 'motherId'
+    },
+    school: {
+      type: Schema.Types.Model
+    }
+  });
+
+  let schoolSchema = new Schema({
+    children: {
+      type: Schema.Types.Models
     }
   });
 
@@ -451,9 +460,20 @@ describe('Multiple Relationships', () => {
     }
   }
 
+  class School extends Model(schoolSchema) {
+    static get knex() {
+      return knex;
+    }
+
+    static get registry() {
+      return registry;
+    }
+  }
+
   registry = {
     Parent,
-    Child
+    Child,
+    School
   };
 
 
@@ -466,7 +486,9 @@ describe('Multiple Relationships', () => {
         table.increments('id');
         table.integer('motherId');
         table.integer('fatherId');
-      })
+        table.integer('schoolId');
+      }),
+      knex.schema.createTable('Schools', table => table.increments('id'))
     ]);
 
     await Promise.all([
@@ -478,11 +500,16 @@ describe('Multiple Relationships', () => {
       knex('Children').insert([{
         id: 1,
         motherId: 1,
-        fatherId: 2
+        fatherId: 2,
+        schoolId: 1
       }, {
         id: 2,
         motherId: 1,
-        fatherId: 2
+        fatherId: 2,
+        schoolId: 1
+      }]),
+      knex('Schools').insert([{
+        id: 1
       }])
     ]);
   });
@@ -510,10 +537,31 @@ describe('Multiple Relationships', () => {
     });
   });
 
+  describe('as a parent', () => {
+    let father, mother;
+    before(async () => {
+      father = await Parent.findById(2, {
+        withRelated: ['fatheredChildren.school']
+      });
+      mother = await Parent.findById(1, {
+        withRelated: ['motheredChildren.father']
+      });
+    });
+
+    it('should have pulled in the school', () => {
+      expect(father.fatheredChildren[0].school.id).to.equal(1);
+    });
+
+    it('should have pulled in the father from the mother call', () => {
+      expect(mother.motheredChildren[0].father.id).to.equal(2);
+    });
+  });
+
   after(async () => {
     await Promise.all([
       knex.schema.dropTable('Parents'),
-      knex.schema.dropTable('Children')
+      knex.schema.dropTable('Children'),
+      knex.schema.dropTable('Schools')
     ]);
   });
 });

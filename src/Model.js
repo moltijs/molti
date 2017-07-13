@@ -184,10 +184,10 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         Object.keys(relatedModel.relationshipMap).forEach(relName => {
           let currentRelDef = relatedModel.relationshipMap[relName];
 
-          currentRelDef.foreignField = currentRelDef.foreignField || ((currentRelDef.type === Types.Models) ? this._guessColumnName(relatedModel.tableName, relatedModel.idColumn) : idColumn);
-          currentRelDef.localField = currentRelDef.localField || ((currentRelDef.type === Types.Models) ? relatedModel.idColumn : this._guessColumnName(this.tableName, idColumn));
+          let foreignField = currentRelDef.foreignField || ((currentRelDef.type === Types.Models) ? this._guessColumnName(relatedModel.tableName, relatedModel.idColumn) : idColumn);
+          let localField = currentRelDef.localField || ((currentRelDef.type === Types.Models) ? relatedModel.idColumn : this._guessColumnName(this.tableName, idColumn));
 
-          if (currentRelDef.foreignField === relDef.localField ||
+          if (foreignField === relDef.localField ||
             (
               (currentRelDef.through && relDef.through) &&
               currentRelDef.through === relDef.through &&
@@ -195,7 +195,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
               currentRelDef.throughLocalField === relDef.throughForeignField
             )
             ) {
-            relatedRelDef = Object.assign({ relName }, currentRelDef);
+            relatedRelDef = Object.assign({ relName, localField, foreignField }, currentRelDef);
           }
         });
 
