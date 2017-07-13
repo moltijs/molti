@@ -339,7 +339,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
     toJSON(ignoredRecord) {
       let relMap = Object.keys(relationshipMap).reduce((map, relName) => {
-        if (this[relName] !== ignoredRecord) {
+        if (this[relName] && (this[relName] !== ignoredRecord)) {
           map[relName] = is(Array)(this[relName]) ?
             this[relName].filter(rec => rec !== ignoredRecord).map(rec => rec.toJSON(this)) :
             this[relName].toJSON(this);
