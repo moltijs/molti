@@ -1,11 +1,11 @@
 const AJV = require('ajv');
+const { Types } = require('./ModelSchema');
 const mongoose = require('mongoose');
-const events = require('events');
+const { EventEmitter } = require('events');
 const { clone, isString, isFunction, isObject } = require('lodash');
 const { is, pluck } = require('ramda');
 
 require('mongoose-schema-jsonschema')(mongoose);
-const { Schema } = mongoose;
 
 const defaultSaveOptions = {
   upsert: false,
@@ -20,12 +20,16 @@ const defaultSaveOptions = {
  * @param {any} [config=defaultConfiguration] 
  * @returns 
  */
-function Model(tableName, schema, {timestamps = false, validateOnInit = false, idColumn = 'id', deletedAtColumn = null, underscored = false, createdAtColumn, updatedAtColumn} = {}) {
-  let jsonSchema = schema;
-  if (isFunction(schema.jsonSchema)) {
-    jsonSchema = schema.jsonSchema();
-    delete jsonSchema.properties._id;
-  }
+function Model(schema, {tableName, timestamps = false, validateOnInit = false, idColumn = 'id', deletedAtColumn = null, underscored = false, createdAtColumn, updatedAtColumn} = {}) {
+  let relationshipMap = {};
+  let jsonSchema = schema.jsonSchema.withoutRefs;
+
+  Object.keys(schema._formatted).forEach((key) => {
+    if ([Types.Models, Types.Model].includes(schema._formatted[key].type)) {
+      relationshipMap[key] = schema._formatted[key];
+    }
+  });
+
 
   const ajv = new AJV({
     allErrors: true,
@@ -37,13 +41,14 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
    * 
    * @class ModelInstance
    */
-  class ModelInstance {
+  class ModelInstance extends EventEmitter {
     /**
      * Creates an instance of ModelInstance.
      * @param {object} props 
      * @memberof ModelInstance
      */
     constructor(props) {
+      super();
       let validate = ajv.compile(jsonSchema);
       let result = validate(props);
 
@@ -60,11 +65,23 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
     }
 
     static get tableName() {
-      return tableName;
+      return tableName || this.name;
+    }
+
+    get tableName() {
+      return this.constructor.tableName;
+    }
+
+    static get relationshipMap() {
+      return relationshipMap;
     }
 
     static get schema() {
       return schema;
+    }
+
+    static get toSwagger() {
+      return schema.jsonSchema.withRefs;
     }
 
     static get modelName() {
@@ -86,7 +103,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
      * @memberof ModelInstance
      */
     static attachToRegistry(registry) {
-      registry[tableName] = this;
+      registry[this.tableName] = this;
       this.registry = registry;
     }
     /**
@@ -97,7 +114,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
      * @memberof ModelInstance
      */
     static getQuery() {
-      let query = this.knex(tableName);
+      let query = this.knex(this.tableName);
       if (this._softDelete) {
         query.whereNull(deletedAtColumn);
       }
@@ -143,28 +160,58 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       if (instances.length > 0) {
         let [relatedAttr] = relatedTree;
 
-        if (!instances[0][relatedAttr]) throw new ReferenceError('No such attribute ' + relatedAttr);
+        if (!relationshipMap[relatedAttr]) throw new ReferenceError('No such attribute ' + relatedAttr);
 
-        instances[0]._fetching = true;
-        let relDef = instances[0][relatedAttr]();
-        instances[0]._fetching = false;
+        let relDef = Object.assign({ instances }, relationshipMap[relatedAttr]);
 
-        relDef.instances = instances;
+        let { relatedModel } = relDef;
 
-        let {relatedTable} = relDef;
+        if (isString(relatedModel)) relatedModel = this.registry[relatedModel];
 
-        if (isString(relatedTable)) relatedTable = this.registry[relatedTable];
+        relDef.localField = relDef.localField || (relDef.type === Types.Models ? idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
 
         let results = await this._pullRelated(relDef, true);
+        let relatedRelDef;
 
-        instances.forEach(instance => {
-          instance._relationships = Object.assign(instance._relationships || {}, {
-            [relatedTable.tableName]: results.map[instance[relDef.localField]]
-          });
+        Object.keys(relatedModel.relationshipMap).forEach(relName => {
+          let currentRelDef = relatedModel.relationshipMap[relName];
+
+          currentRelDef.foreignField = currentRelDef.foreignField || ((currentRelDef.type === Types.Models) ? this._guessColumnName(relatedModel.tableName, relatedModel.idColumn) : idColumn);
+          currentRelDef.localField = currentRelDef.localField || ((currentRelDef.type === Types.Models) ? relatedModel.idColumn : this._guessColumnName(this.tableName, idColumn));
+
+          if (currentRelDef.foreignField === relDef.localField ||
+            (
+              (currentRelDef.through && relDef.through) &&
+              currentRelDef.through === relDef.through &&
+              currentRelDef.throughForeignField === relDef.throughLocalField &&
+              currentRelDef.throughLocalField === relDef.throughForeignField
+            )
+            ) {
+            relatedRelDef = Object.assign({ relName }, currentRelDef);
+          }
         });
 
-        if (relatedTree[1]) {
-          await relatedTable._handleWithRelated(results.array, relatedTree.slice(1).join('.'));
+        instances.forEach(instance => {
+          instance[relatedAttr] = results.map[instance[relDef.localField]];
+          if (!instance[relatedAttr] && (relDef.type === Types.Models)) {
+            instance[relatedAttr] = [];
+          }
+          if (relatedRelDef) {
+            results.array.forEach(result => {
+              if (!relatedRelDef.through && (result[relatedRelDef.localField] === instance[relDef.localField])) {
+                if (relatedRelDef.type === Types.Models) {
+                  (result[relatedRelDef.relName] = result[relatedRelDef.relName] || []).push(instance);
+                  result;
+                } else if (relatedRelDef.type === Types.Model) {
+                  result[relatedRelDef.relName] = instance;
+                }
+              }
+            });
+          }
+        });
+
+        if (relatedTree.length > 1) {
+          await relatedModel._handleWithRelated(results.array, relatedTree.slice(1).join('.'));
         }
 
       } else {
@@ -201,7 +248,7 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       if (!this._softDelete) {
         throw new ReferenceError(this.name + ' does not support soft deletes');
       }
-      await this.knex(tableName)
+      await this.knex(this.tableName)
         .where(idColumn, id)
         .update(deletedAtColumn, null);
     }
@@ -217,10 +264,6 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
 
     get knex() {
       return this.constructor.knex;
-    }
-
-    get registry() {
-      return this.constructor.registry;
     }
 
     get query() {
@@ -242,12 +285,12 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       }
 
       if (this._persisted) {
-        await this.knex(tableName)
+        await this.knex(this.tableName)
           .where(idColumn, this[idColumn])
           .update(this._changes);
 
       } else {
-        let results = await this.knex(tableName).insert(this._props).returning('id');
+        let results = await this.knex(this.tableName).insert(this._props).returning('id');
         if (results && results.length > 0) {
           this._props[idColumn] = results[0];
         }
@@ -286,8 +329,16 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       }
     }
 
-    toJSON() {
-      return this._props;
+    toJSON(ignoredRecord) {
+      let relMap = Object.keys(relationshipMap).reduce((map, relName) => {
+        if (this[relName] !== ignoredRecord) {
+          map[relName] = is(Array)(this[relName]) ?
+            this[relName].filter(rec => rec !== ignoredRecord).map(rec => rec.toJSON(this)) :
+            this[relName].toJSON(this);
+        }
+        return map;
+      }, {});
+      return Object.assign(relMap, this._props);
     }
 
     validate() {
@@ -296,134 +347,38 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
       return valid;
     }
 
-    get _guessColumnName() {
-      return this.constructor._guessColumnName;
-    }
-
-    /**
-     * 
-     * @typedef relationshipDefinition
-     * 
-     * @prop {string} localField field on this table that matches the related field (will guess based on this id column)
-     * @prop {string} relatedField field on related table that matches this local field (will guess based on related table and related id column)
-     * @prop {string} through join table used for many to many relationships
-     * @prop {string} interLocalField field on the join table that matches this local field (will guess based on this table and this id column)
-     * @prop {string} interRelatedField field on the join table that matches the related field (will guess based on related table and related id column)
-     */
-
-    /**
-     * 
-     * 
-     * @param {string} relatedTable 
-     * @param {relationshipDefinition} relDef 
-     * @memberof ModelInstance
-     */
-    hasMany (relatedTable, relDef = {}) {
-      if (isString(relatedTable)) relatedTable = this.registry[relatedTable];
-
-      relDef.relatedField = relDef.relatedField || this.constructor._guessColumnName(tableName, relDef.localField || idColumn);
-      relDef.localField = relDef.localField || idColumn;
-
-
-      if (relDef.through) {
-        relDef.through = isString(relDef.through) ? relDef.through : this._guessColumnName(tableName, relatedTable.tableName);
-
-        relDef.interLocalField = relDef.interLocalField || this._guessColumnName(tableName);
-        relDef.interRelatedField = relDef.interRelatedField || this._guessColumnName(relatedTable.tableName);
+    pullRelated(key) {
+      let relDef = relationshipMap[key.tableName || key];
+      if (relDef) {
+        return this[relDef.name] = this.constructor._pullRelated(Object.assign({ instances: this }, relDef));
+      } else {
+        throw new ReferenceError('No such relationship: ' + key);
       }
-
-      return this._handleRelationshipReturn(Object.assign({}, relDef, {
-        relatedTable: relatedTable.tableName,
-        many: true
-      }));
-    }
-
-
-    /**
-     * 
-     * 
-     * @param {string} relatedTable 
-     * @param {relationshipDefinition} relDef 
-     * @memberof ModelInstance
-     */
-    belongsTo (relatedTable, relDef = {}) {
-      if (isString(relatedTable)) relatedTable = this.registry[relatedTable];
-
-      relDef.relatedField = relDef.relatedField || relatedTable.idColumn;
-      relDef.localField = relDef.localField || this.constructor._guessColumnName(relatedTable.tableName, relDef.relatedField);
-
-      return this._handleRelationshipReturn(Object.assign({}, relDef, {
-        relatedTable: relatedTable.tableName,
-        many: false
-      }));
-    }
-
-    _handleRelationshipReturn (def) {
-      return this._fetching ? def : (this._relationships[def.relatedTable] || []);
-    }
-
-    pullAll(relatedTable, relDef) {
-      return this.constructor.pullAll(relatedTable, relDef, this);
-    }
-
-    static pullAll(relatedTable, {
-      localField = idColumn,
-      relatedField,
-      through,
-      interLocalField,
-      interRelatedField
-    } = {}, instances) {
-      if (isString(relatedTable)) relatedTable = this.registry[relatedTable];
-
-      relatedField = relatedField || this._guessColumnName(tableName, localField);
-
-      if (through) {
-        through = isString(through) ? through : this._guessColumnName(tableName, relatedTable.tableName);
-
-        interLocalField = interLocalField || this._guessColumnName(tableName);
-        interRelatedField = interRelatedField || this._guessColumnName(relatedTable.tableName);
-      }
-
-      return this._pullRelated({ relatedTable, relatedField, through, interLocalField, interRelatedField, localField, instances, many: true });
-    }
-
-
-    pullOnly(relatedTable, relDef) {
-      return this.constructor.pullOnly(relatedTable, relDef, this);
-    }
-
-    static pullOnly(relatedTable, {
-      relatedField,
-      localField,
-      through,
-      interLocalField,
-      interRelatedField
-    } = {}, instances) {
-      if (isString(relatedTable)) relatedTable = this.registry[relatedTable];
-
-      relatedField = relatedField || relatedTable.idColumn;
-      localField = localField || this._guessColumnName(relatedTable.tableName, relatedField);
-
-      return this._pullRelated({relatedTable, localField, instances, relatedField, through, interLocalField, interRelatedField, many: false});
     }
 
     static async _pullRelated({
-      relatedTable,
-      relatedField,
-      many,
+      relatedModel,
+      foreignField,
+      localField,
+      type,
       through,
-      interLocalField,
-      interRelatedField,
-      instances,
-      localField
-    }, grouped) {
-      if (isString(relatedTable)) {
-        relatedTable = this.registry[relatedTable];
+      throughLocalField,
+      throughForeignField,
+      instances
+    }) {
+      const many = type === Types.Models;
+
+      if (isString(relatedModel)) {
+        relatedModel = this.registry[relatedModel];
       }
 
-      if (!relatedTable) {
-        throw new ReferenceError('Unknown table ' + relatedTable);
+      if (!relatedModel) {
+        throw new ReferenceError('Unknown table ' + relatedModel);
       }
+
+      localField = localField || (many ? idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
+
+      foreignField = foreignField || (many ? this._guessColumnName(this.tableName, this.idColumn) : relatedModel.idColumn);
 
       let relatedValue = is(Array)(instances) ? pluck(localField)(instances) : [instances[localField]];
 
@@ -434,43 +389,42 @@ function Model(tableName, schema, {timestamps = false, validateOnInit = false, i
         return [];
       case 1:
         relatedQuery = query => {
-          query.where(relatedField, relatedValue[0]);
+          query.where(foreignField, relatedValue[0]);
           return query;
         };
         break;
       default:
         relatedQuery = query => {
-          query.whereIn(relatedField, relatedValue);
+          query.whereIn(foreignField, relatedValue);
           return query;
         };
       }
 
       if (through) {
-        relatedQuery = query => {
-          query.join(through, `${relatedTable.tableName}.${relatedTable.idColumn}`, `${through}.${interRelatedField}`);
+        throughLocalField = throughLocalField || this._guessColumnName(this.tableName, idColumn);
+        throughForeignField = throughForeignField || this._guessColumnName(relatedModel.tableName, relatedModel.idColumn);
 
-          query.whereIn(`${interLocalField}`, relatedValue);
+        relatedQuery = query => {
+          query.join(through, `${relatedModel.tableName}.${relatedModel.idColumn}`, `${through}.${throughForeignField}`);
+
+          query.whereIn(`${throughLocalField}`, relatedValue);
 
           return query;
         };
       }
 
-      let results = await relatedTable.find(relatedQuery, {}, true);
+      let results = await relatedModel.find(relatedQuery, {}, true);
 
-      if (grouped) {
-        let map = {};
-        results.forEach(result => {
-          const mapKey = through ? result[interRelatedField] : result[relatedField];
-          if (many) {
-            (map[mapKey] = map[mapKey] || []).push(result);
-          } else {
-            map[mapKey] = result;
-          }
-        });
-        return {map, array: results};
-      }
-
-      return many ? results : results[0];
+      let map = {};
+      results.forEach(result => {
+        const mapKey = through ? result[throughForeignField] : result[foreignField];
+        if (many) {
+          (map[mapKey] = map[mapKey] || []).push(result);
+        } else {
+          map[mapKey] = result;
+        }
+      });
+      return {map, array: results};
     }
   }
 
