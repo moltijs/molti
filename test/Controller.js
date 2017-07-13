@@ -46,7 +46,7 @@ describe('Controller', () => {
       }
     ];
     sampleController = new Controller(controllerConfig);
-
+    
     expect(sampleController._before).to.be
       .equal(controllerConfig.before);
 

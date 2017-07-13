@@ -5,5 +5,6 @@ module.exports = {
   Parameter: require('./Parameter'),
   Response: require('./Response'),
   Model: require('./Model'),
-  ModelLoader: require('./ModelLoader')
+  ModelLoader: require('./ModelLoader'),
+  Schema: require('./ModelSchema')
 };
