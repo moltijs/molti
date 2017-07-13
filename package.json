@@ -1,6 +1,6 @@
 {
   "name": "molti",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extendable web framework",
   "repository": {
     "type": "git",
@@ -17,6 +17,7 @@
     "@types/mongoose": "^4.7.18",
     "ajv": "^5.1.5",
     "express": "^4.15.3",
+    "i": "^0.3.5",
     "knex": "^0.13.0",
     "lodash": "^4.17.4",
     "mongoose": "^4.10.5",

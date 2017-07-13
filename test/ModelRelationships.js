@@ -57,22 +57,22 @@ describe('Single Relationships', () => {
 
   before(async () => {
     await Promise.all([
-      knex.schema.createTable('Parent', table => {
+      knex.schema.createTable('Parents', table => {
         table.increments('id');
       }),
-      knex.schema.createTable('Child', table => {
+      knex.schema.createTable('Children', table => {
         table.increments('id');
         table.integer('parentId');
       })
     ]);
 
     await Promise.all([
-      knex('Parent').insert([{
+      knex('Parents').insert([{
         id: 1
       }, {
         id: 2
       }]),
-      knex('Child').insert([{
+      knex('Children').insert([{
         id: 1,
         parentId: 1
       }, {
@@ -155,8 +155,8 @@ describe('Single Relationships', () => {
 
   after(async () => {
     await Promise.all([
-      knex.schema.dropTable('Parent'),
-      knex.schema.dropTable('Child')
+      knex.schema.dropTable('Parents'),
+      knex.schema.dropTable('Children')
     ]);
   });
 });
@@ -166,7 +166,7 @@ describe('Join Relationships', () => {
     students: {
       type: Schema.Types.Models,
       relatedModel: 'Student',
-      through: 'StudentCourse'
+      through: 'StudentCourses'
     }
   });
 
@@ -180,7 +180,7 @@ describe('Join Relationships', () => {
     courses: {
       type: Schema.Types.Models,
       relatedModel: 'Course',
-      through: 'StudentCourse'
+      through: 'StudentCourses'
     }
   });
 
@@ -199,33 +199,33 @@ describe('Join Relationships', () => {
 
   before(async () => {
     await Promise.all([
-      knex.schema.createTable('Student', table => {
+      knex.schema.createTable('Students', table => {
         table.increments('id');
       }),
-      knex.schema.createTable('Course', table => {
+      knex.schema.createTable('Courses', table => {
         table.increments('id');
       }),
-      knex.schema.createTable('StudentCourse', table => {
+      knex.schema.createTable('StudentCourses', table => {
         table.integer('studentId');
         table.integer('courseId');
       })
     ]);
     await Promise.all([
-      knex('Student').insert([{
+      knex('Students').insert([{
         id: 1
       }, {
         id: 2
       }, {
         id: 3
       }]),
-      knex('Course').insert([{
+      knex('Courses').insert([{
         id: 1
       }, {
         id: 2
       }, {
         id: 3
       }]),
-      knex('StudentCourse').insert([{
+      knex('StudentCourses').insert([{
         studentId: 1,
         courseId: 1
       }, {
@@ -259,9 +259,9 @@ describe('Join Relationships', () => {
 
   after(async () => {
     await Promise.all([
-      knex.schema.dropTable('Student'),
-      knex.schema.dropTable('Course'),      
-      knex.schema.dropTable('StudentCourse')
+      knex.schema.dropTable('Students'),
+      knex.schema.dropTable('Courses'),      
+      knex.schema.dropTable('StudentCourses')
     ]);
   });
 });
@@ -315,29 +315,29 @@ describe('Deep Relationships', () => {
   let student;
   before(async () => {
     await Promise.all([
-      knex.schema.createTable('Principal', table => table.increments('id')),
-      knex.schema.createTable('Teacher', table => {
+      knex.schema.createTable('Principals', table => table.increments('id')),
+      knex.schema.createTable('Teachers', table => {
         table.increments('id');
         table.integer('principalId');
       }),
-      knex.schema.createTable('Student', table => {
+      knex.schema.createTable('Students', table => {
         table.increments('id');
         table.integer('teacherId');
       })
     ]);
 
     await Promise.all([
-      knex('Principal').insert([{
+      knex('Principals').insert([{
         id: 1
       }]),
-      knex('Teacher').insert([{
+      knex('Teachers').insert([{
         id: 1,
         principalId: 1
       }, {
         id: 2,
         principalId: 1
       }]),
-      knex('Student').insert([{
+      knex('Students').insert([{
         id: 1,
         teacherId: 1
       }, {
@@ -399,9 +399,9 @@ describe('Deep Relationships', () => {
 
   after(async () => {
     await Promise.all([
-      knex.schema.dropTable('Principal'),
-      knex.schema.dropTable('Teacher'),
-      knex.schema.dropTable('Student')
+      knex.schema.dropTable('Principals'),
+      knex.schema.dropTable('Teachers'),
+      knex.schema.dropTable('Students')
     ]);
   });
 });
@@ -466,10 +466,10 @@ describe('Multiple Relationships', () => {
 
   before(async () => {
     await Promise.all([
-      knex.schema.createTable('Parent', table => {
+      knex.schema.createTable('Parents', table => {
         table.increments('id');
       }),
-      knex.schema.createTable('Child', table => {
+      knex.schema.createTable('Children', table => {
         table.increments('id');
         table.integer('motherId');
         table.integer('fatherId');
@@ -477,12 +477,12 @@ describe('Multiple Relationships', () => {
     ]);
 
     await Promise.all([
-      knex('Parent').insert([{
+      knex('Parents').insert([{
         id: 1
       }, {
         id: 2
       }]),
-      knex('Child').insert([{
+      knex('Children').insert([{
         id: 1,
         motherId: 1,
         fatherId: 2
@@ -519,8 +519,8 @@ describe('Multiple Relationships', () => {
 
   after(async () => {
     await Promise.all([
-      knex.schema.dropTable('Parent'),
-      knex.schema.dropTable('Child')
+      knex.schema.dropTable('Parents'),
+      knex.schema.dropTable('Children')
     ]);
   });
 });

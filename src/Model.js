@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const { EventEmitter } = require('events');
 const { clone, isString, isFunction, isObject } = require('lodash');
 const { is, pluck } = require('ramda');
+const inflect = require('i')();
 
 require('mongoose-schema-jsonschema')(mongoose);
 
@@ -65,7 +66,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static get tableName() {
-      return tableName || this.name;
+      return tableName || inflect.pluralize(this.name);
     }
 
     get tableName() {
@@ -103,7 +104,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
      * @memberof ModelInstance
      */
     static attachToRegistry(registry) {
-      registry[this.tableName] = this;
+      registry[this.name] = this;
       this.registry = registry;
     }
     /**
@@ -122,6 +123,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static _guessColumnName(table, column = this.registry[table].idColumn) {
+      table = inflect.singularize(table);
       return underscored ?
         (table[0].toLowerCase() + table.slice(1) + '_' + column) :
         (table[0].toLowerCase() + table.slice(1) + column[0].toUpperCase() + column.slice(1));
