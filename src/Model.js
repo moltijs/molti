@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const { EventEmitter } = require('events');
 const { clone, isString, isFunction, isObject } = require('lodash');
 const { is, pluck } = require('ramda');
-const inflect = require('i')();
+const inflect = require('pluralize');
 
 require('mongoose-schema-jsonschema')(mongoose);
 
@@ -66,7 +66,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static get tableName() {
-      return tableName || inflect.pluralize(this.name);
+      return tableName || inflect.plural(this.name);
     }
 
     get tableName() {
@@ -123,7 +123,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static _guessColumnName(table, column = this.registry[table].idColumn) {
-      table = inflect.singularize(table);
+      table = inflect.singular(table);
       return underscored ?
         (table[0].toLowerCase() + table.slice(1) + '_' + column) :
         (table[0].toLowerCase() + table.slice(1) + column[0].toUpperCase() + column.slice(1));
@@ -169,7 +169,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         let { relatedModel } = relDef;
 
         if (!relatedModel) {
-          relatedModel = inflect.singularize(relatedAttr[0].toUpperCase() + relatedAttr.slice(1));
+          relatedModel = inflect.singular(relatedAttr[0].toUpperCase() + relatedAttr.slice(1));
         }        
         
         if (isString(relatedModel)) relatedModel = this.registry[relatedModel];
