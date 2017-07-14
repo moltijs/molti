@@ -6,5 +6,6 @@ module.exports = {
   Response: require('./Response'),
   Model: require('./Model'),
   ModelLoader: require('./ModelLoader'),
-  Schema: require('./ModelSchema')
+  Schema: require('./ModelSchema'),
+  Config: require('./Config')
 };

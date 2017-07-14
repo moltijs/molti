@@ -1,5 +1,6 @@
 const AJV = require('ajv');
 const { Types } = require('./ModelSchema');
+const Config = require('./Config');
 const mongoose = require('mongoose');
 const { EventEmitter } = require('events');
 const { clone, isString, isFunction, isObject } = require('lodash');
@@ -21,7 +22,7 @@ const defaultSaveOptions = {
  * @param {any} [config=defaultConfiguration] 
  * @returns 
  */
-function Model(schema, {tableName, timestamps = false, validateOnInit = false, idColumn = 'id', deletedAtColumn = null, underscored = false, createdAtColumn, updatedAtColumn} = {}) {
+function Model(schema, {tableName, timestamps = false, validateOnInit = false, idColumn: idColumnInput, deletedAtColumn = null, underscored = false, createdAtColumn, updatedAtColumn} = {}) {
   let relationshipMap = {};
   let jsonSchema = schema.jsonSchema.withoutRefs;
 
@@ -90,7 +91,11 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static get idColumn() {
-      return idColumn;
+      return idColumnInput || Config.guessIdColumn(this);
+    }
+
+    get idColumn() {
+      return this.constructor.idColumn;
     }
 
     static get _softDelete() {
@@ -174,7 +179,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         
         if (isString(relatedModel)) relatedModel = this.registry[relatedModel];
         
-        relDef.localField = relDef.localField || (relDef.type === Types.Models ? idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
+        relDef.localField = relDef.localField || (relDef.type === Types.Models ? this.idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
         
         relDef.relatedModel = relatedModel;
   
@@ -184,8 +189,8 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         Object.keys(relatedModel.relationshipMap).forEach(relName => {
           let currentRelDef = relatedModel.relationshipMap[relName];
 
-          let foreignField = currentRelDef.foreignField || ((currentRelDef.type === Types.Models) ? this._guessColumnName(relatedModel.tableName, relatedModel.idColumn) : idColumn);
-          let localField = currentRelDef.localField || ((currentRelDef.type === Types.Models) ? relatedModel.idColumn : this._guessColumnName(this.tableName, idColumn));
+          let foreignField = currentRelDef.foreignField || ((currentRelDef.type === Types.Models) ? this._guessColumnName(relatedModel.tableName, relatedModel.idColumn) : this.idColumn);
+          let localField = currentRelDef.localField || ((currentRelDef.type === Types.Models) ? relatedModel.idColumn : this._guessColumnName(this.tableName, this.idColumn));
 
           if (foreignField === relDef.localField ||
             (
@@ -228,7 +233,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static async findById(id, {fields = '*', withRelated = []} = {}) {
-      let [props] = await this.getQuery().where(idColumn, id).select(fields);
+      let [props] = await this.getQuery().where(this.idColumn, id).select(fields);
       if (props) {
         let foundRecord = new this(props);
         for (let i = 0; i < withRelated.length; i++) {
@@ -257,7 +262,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         throw new ReferenceError(this.name + ' does not support soft deletes');
       }
       await this.knex(this.tableName)
-        .where(idColumn, id)
+        .where(this.idColumn, id)
         .update(deletedAtColumn, null);
     }
 
@@ -294,13 +299,13 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
       if (this._persisted) {
         await this.knex(this.tableName)
-          .where(idColumn, this[idColumn])
+          .where(this.idColumn, this[this.idColumn])
           .update(this._changes);
 
       } else {
         let results = await this.knex(this.tableName).insert(this._props).returning('id');
         if (results && results.length > 0) {
-          this._props[idColumn] = results[0];
+          this._props[this.idColumn] = results[0];
         }
         this._persisted = true;
       }
@@ -314,7 +319,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
     destroy() {
       let deleteQuery = this.query
-        .where(idColumn, this[idColumn]);
+        .where(this.idColumn, this[this.idColumn]);
       if (this.constructor._softDelete) {
         return deleteQuery.update(deletedAtColumn, new Date);
       } else {
@@ -380,7 +385,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         throw new ReferenceError('Unknown table ' + relatedModel);
       }
 
-      localField = localField || (many ? idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
+      localField = localField || (many ? this.idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
 
       foreignField = foreignField || (many ? this._guessColumnName(this.tableName, this.idColumn) : relatedModel.idColumn);
 
@@ -405,7 +410,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
       }
 
       if (through) {
-        throughLocalField = throughLocalField || this._guessColumnName(this.tableName, idColumn);
+        throughLocalField = throughLocalField || this._guessColumnName(this.tableName, this.idColumn);
         throughForeignField = throughForeignField || this._guessColumnName(relatedModel.tableName, relatedModel.idColumn);
 
         relatedQuery = query => {

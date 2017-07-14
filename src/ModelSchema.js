@@ -1,4 +1,4 @@
-const { Model } = require('.');
+const inflect = require('pluralize');
 
 const Types = {
   String: 'String',
@@ -68,17 +68,26 @@ const primitiveTypes = {
       type: 'boolean'
     };
   },
-  Model({ relatedModel }) {
+  Model({ relatedModel }, key) {
+    if (!relatedModel) {
+      relatedModel = inflect.singular(key);
+      relatedModel = relatedModel[0].toUpperCase() + relatedModel.slice(1);
+    }
+
     return {
       $ref: `#/definitions/${relatedModel}`
     };
   },
-  Models({ relatedModel }) {
+  Models({ relatedModel }, key) {
+    if (!relatedModel) {
+      relatedModel = inflect.singular(key);
+      relatedModel = relatedModel[0].toUpperCase() + relatedModel.slice(1);
+    }
     return {
-      type: 'array',
       items: {
         $ref: `#/definitions/${relatedModel}`
-      }
+      },
+      type: 'array'
     };
   }
 };
@@ -134,7 +143,7 @@ class Schema {
         withRefs.required.push(key);
       }
       let { type } = this._formatted[key];
-      withRefs.properties[key] = primitiveTypes[type](this._formatted[key]);
+      withRefs.properties[key] = primitiveTypes[type](this._formatted[key], key);
 
       if (![Types.Model, Types.Models].includes(type)) {
         withoutRefs.properties[key] = withRefs.properties[key];
