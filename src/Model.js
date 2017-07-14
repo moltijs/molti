@@ -128,7 +128,9 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
     }
 
     static _guessColumnName(table, column = this.registry[table].idColumn) {
-      table = inflect.singular(table);
+      table = inflect.singular(table).split('.');
+      table = table[table.length - 1];
+
       return underscored ?
         (table[0].toLowerCase() + table.slice(1) + '_' + column) :
         (table[0].toLowerCase() + table.slice(1) + column[0].toUpperCase() + column.slice(1));
@@ -426,7 +428,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
       let map = {};
       results.forEach(result => {
-        const mapKey = through ? result[throughForeignField] : result[foreignField];
+        const mapKey = through ? result[throughLocalField] : result[foreignField];
         if (many) {
           (map[mapKey] = map[mapKey] || []).push(result);
         } else {
