@@ -152,6 +152,6 @@ class Schema {
   }
 }
 
-Schema.Types = Types;
+Schema.Types = Schema.SchemaTypes = Types;
 
 module.exports = Schema;
