@@ -1,3 +1,11 @@
+[![NPM Version][npm-image]][npm-url]
+[![NPM Downloads][downloads-image]][downloads-url]
+[![Linux Build][travis-image]][travis-url]
+[![Windows Build][appveyor-image]][appveyor-url]
+[![Test Coverage][coveralls-image]][coveralls-url]
+
+[![NPM](https://nodei.co/npm/molti.png)](https://npmjs.org/package/molti)
+
 # Molti
 
 A self documenting extensible framework powered by `express` and `knex`
