@@ -22,7 +22,6 @@
     "ramda": "^0.24.1"
   },
   "devDependencies": {
-    "@types/knex": "0.0.54",
     "babel-eslint": "^7.2.3",
     "babel-polyfill": "^6.23.0",
     "babel-register": "^6.24.1",
