@@ -52,10 +52,8 @@ const primitiveTypes = {
       exclusiveMinimum
     };
   },
-  JSON(input) {
-    return Object.assign({
-      type: 'object',
-    }, input);
+  JSON() {
+    return {};
   },
   Date() {
     return {
