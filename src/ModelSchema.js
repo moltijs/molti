@@ -16,10 +16,10 @@ const SchemaTypes = {
   [Types.Boolean]: Boolean,
   [Types.Date]: Date,
   get [Types.Model]() {
-    return require('./Model');
+    return require('./ModelFactory');
   },
   get [Types.Models](){
-    return [require('./Model')];
+    return [require('./ModelFactory')];
   },
   [Types.JSON]: JSON
 };
