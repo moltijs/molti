@@ -2,7 +2,7 @@
 [![NPM Downloads][downloads-image]][downloads-url]
 [![Test Coverage][coveralls-image]][coveralls-url]
 
-[![Linux Build][travis-image]][https://travis-ci.org/SaaJoh0783/molti.svg?branch=master]
+[![Linux Build][travis-image]](https://travis-ci.org/SaaJoh0783/molti.svg?branch=master)
 [![NPM](https://nodei.co/npm/molti.png)](https://npmjs.org/package/molti)
 
 # Molti
