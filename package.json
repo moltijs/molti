@@ -1,6 +1,6 @@
 {
   "name": "molti",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Extendable web framework",
   "repository": {
     "type": "git",
@@ -14,13 +14,10 @@
     "test:watch": "nodemon -w test -w src --exec \"npm test\""
   },
   "dependencies": {
-    "@types/mongoose": "^4.7.18",
     "ajv": "^5.1.5",
     "express": "^4.15.3",
     "knex": "^0.13.0",
     "lodash": "^4.17.4",
-    "mongoose": "^4.10.5",
-    "mongoose-schema-jsonschema": "^1.1.13",
     "pluralize": "^5.0.0",
     "ramda": "^0.24.1"
   },

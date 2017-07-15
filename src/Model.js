@@ -1,13 +1,10 @@
 const AJV = require('ajv');
 const { Types } = require('./ModelSchema');
 const Config = require('./Config');
-const mongoose = require('mongoose');
 const { EventEmitter } = require('events');
 const { clone, isString, isFunction, isObject } = require('lodash');
 const { is, pluck } = require('ramda');
 const inflect = require('pluralize');
-
-require('mongoose-schema-jsonschema')(mongoose);
 
 const defaultSaveOptions = {
   upsert: false,
