@@ -557,6 +557,21 @@ describe('Multiple Relationships', () => {
     });
   });
 
+  describe('as a parent of a parent', () => {
+    let school;
+    before(async () => {
+      school = await School.findById(1, {
+        withRelated: ['children.mother', 'children.father']
+      });
+    });
+
+    it('should have pulled in a child\'s mother and father', () => {
+      expect(school.children[0].mother).to.be.an.instanceof(Parent);
+      expect(school.children[0].father).to.be.an.instanceof(Parent);
+      expect(school.children[0].father.fatheredChildren[0]).to.equal(school.children[0].mother.motheredChildren[0]);
+    });
+  });
+
   after(async () => {
     await Promise.all([
       knex.schema.dropTable('Parents'),

@@ -184,8 +184,15 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
         relDef.localField = relDef.localField || (relDef.type === Types.Models ? this.idColumn : this._guessColumnName(relatedModel.tableName, relatedModel.idColumn));
         
         relDef.relatedModel = relatedModel;
-  
-        let results = await this._pullRelated(relDef, true);
+
+        let results;
+
+        if (!instances[0]._relationships[relatedAttr]) {
+          results = await this._pullRelated(relDef, true);
+          instances.forEach(instance => instance._relationships[relatedAttr] = results);
+        } else {
+          results = instances[0]._relationships[relatedAttr];
+        }
         let relatedRelDef;
 
         Object.keys(relatedModel.relationshipMap).forEach(relName => {
@@ -196,7 +203,7 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
 
           if (foreignField === relDef.localField ||
             (
-              (currentRelDef.through && relDef.through) &&
+              currentRelDef.through && relDef.through &&
               currentRelDef.through === relDef.through &&
               currentRelDef.throughForeignField === relDef.throughLocalField &&
               currentRelDef.throughLocalField === relDef.throughForeignField
@@ -224,11 +231,9 @@ function Model(schema, {tableName, timestamps = false, validateOnInit = false, i
             });
           }
         });
-
         if (relatedTree.length > 1) {
           await relatedModel._handleWithRelated(results.array, relatedTree.slice(1).join('.'));
         }
-
       } else {
         return instances;
       }
