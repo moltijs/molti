@@ -1,6 +1,6 @@
 # Molti
 
-A self documenting extensible framework built on top of express
+A self documenting extensible framework powered by `express` and `knex`
 
 ## Installation
 
