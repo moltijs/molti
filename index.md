@@ -77,7 +77,7 @@ const childSchema = new Schema({
 
 class Child extends ModelFactory(childSchema) {
   eat() {
-    return `I, ${this.name}, ate ${this.parent.name}'s food`;
+    return `I, ${this.name}, ate food from ${this.parent.name}`;
   }
 }
 
