@@ -1,4 +1,5 @@
-const { Response, Parameter } = require('.');
+const Response = require('./Response');
+const Parameter = require('./Parameter');
 
 module.exports = {
   params: {

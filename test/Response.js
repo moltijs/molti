@@ -1,5 +1,7 @@
 const Response = require('../src/Response');
+const Generics = require('../src/Generics');
 const { expect } = require('chai');
+const { is } = require('ramda');
 
 describe('Response', () => {
   let sampleResponse = new Response();
@@ -104,4 +106,22 @@ describe('Response', () => {
       });
     });
   });
+
+  describe('generics', () => {
+    let responses = Object.keys(Generics.responses);
+
+    it('should have many responses', () => {
+      expect(responses.length).to.be.greaterThan(0);
+  
+      responses.forEach(type => {
+        let response = Generics.responses[type];
+  
+        if (is(Function)(response)) {
+          response = response('');
+        }
+  
+        expect(response).to.be.an.instanceof(Response);
+      });
+    });
+  })
 });

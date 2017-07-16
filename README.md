@@ -18,7 +18,7 @@ $ npm install molti
 #### As a server
 
 ```js
-const { Parameter, Response, Application, Handler, Controller, Generics } = require('molti'); // replace with require('molti');
+const { Parameter, Response, Application, Handler, Controller, Generics } = require('molti');
 
 const sampleController = new Controller({
   basePath: '/'
