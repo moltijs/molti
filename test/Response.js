@@ -106,22 +106,4 @@ describe('Response', () => {
       });
     });
   });
-
-  describe('generics', () => {
-    let responses = Object.keys(Generics.responses);
-
-    it('should have many responses', () => {
-      expect(responses.length).to.be.greaterThan(0);
-  
-      responses.forEach(type => {
-        let response = Generics.responses[type];
-  
-        if (is(Function)(response)) {
-          response = response('');
-        }
-  
-        expect(response).to.be.an.instanceof(Response);
-      });
-    });
-  })
 });
