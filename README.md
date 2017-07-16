@@ -1,6 +1,5 @@
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Test Coverage][coveralls-image]][coveralls-url]
-
+[![Coverage Status](https://coveralls.io/repos/github/SaaJoh0783/molti/badge.svg?branch=master)](https://coveralls.io/github/SaaJoh0783/molti?branch=master)
 [![npm version](https://badge.fury.io/js/molti.svg)](https://badge.fury.io/js/molti)
 [![Build Status](https://travis-ci.org/SaaJoh0783/molti.svg?branch=master)](https://travis-ci.org/SaaJoh0783/molti)
 
