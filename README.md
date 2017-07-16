@@ -2,6 +2,7 @@
 [![npm](https://img.shields.io/npm/dm/molti.svg)]()
 [![Coverage Status](https://img.shields.io/coveralls/SaaJoh0783/molti/master.svg)](https://coveralls.io/github/SaaJoh0783/molti?branch=master)
 [![Build Status](https://img.shields.io/travis/SaaJoh0783/molti/master.svg)](https://travis-ci.org/SaaJoh0783/molti)
+[![AppVeyor branch](https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg)]()
 
 # Molti
 
