@@ -1,10 +1,8 @@
-[![NPM Version][npm-image]][npm-url]
 [![NPM Downloads][downloads-image]][downloads-url]
-[![Linux Build][travis-image]][travis-url]
-[![Windows Build][appveyor-image]][appveyor-url]
 [![Test Coverage][coveralls-image]][coveralls-url]
 
-[![NPM](https://nodei.co/npm/molti.png)](https://npmjs.org/package/molti)
+[![npm version](https://badge.fury.io/js/molti.svg)](https://badge.fury.io/js/molti)
+[![Build Status](https://travis-ci.org/SaaJoh0783/molti.svg?branch=master)](https://travis-ci.org/SaaJoh0783/molti)
 
 # Molti
 
