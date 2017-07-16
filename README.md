@@ -18,22 +18,16 @@ $ npm install molti
 #### As a server
 
 ```js
-const { Parameter, Response, Application, Handler, Controller } = require('../src/'); // replace with require('molti');
-
-const sampleParam = new Parameter('id').path().string();
-const sampleResponse = new Response(200).name('success').prop('message', 'string');
+const { Parameter, Response, Application, Handler, Controller, Generics } = require('molti'); // replace with require('molti');
 
 const sampleController = new Controller({
-  basePath: '/',
-  tag: 'Area',
-  description: 'Some area'
+  basePath: '/'
 });
 
 sampleController.get(new Handler({
   path: '/some_path/:id',
-  description: 'Just some sample path',
-  params: [sampleParam],
-  responses: [sampleResponse],
+  params: [Generics.params.idParam],
+  responses: [Generics.responses.success],
   handler({ id }, { success }) {
     return success({ message: `Found ${id}` });
   }
@@ -91,9 +85,6 @@ const registry = new Registry({
   Parent
 ]);
 
-Parent.findById(1, {
-  withRelated: ['children']
-}).then(parent => {
-  console.log(parent.feedChildren());
-});
+Parent.findById(1, { withRelated: ['children'] })
+  .then(parent => console.log(parent.feedChildren()));
 ```

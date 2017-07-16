@@ -34,7 +34,8 @@ class Application extends express {
       paths = {},
       info = {},
       definitions = {},
-      utils = []
+      utils = [],
+      responses = []
     } = options;
 
     this.controllers = controllers;
@@ -49,6 +50,8 @@ class Application extends express {
     this._paths = paths;
     this._definitions = definitions;
     this._info = info;
+    this._responses = responses;
+
     this.use((err, req, res, next) => {
       errorHandler(err, req, res, next);
     });
