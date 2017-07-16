@@ -6,8 +6,7 @@ const config = {
   useNullAsDefault: true
 };
 
-const knex = require('knex')(config);
-const { Model, Schema } = require('../src/');
+const { Model, Schema, Registry } = require('../src/');
 const { expect } = require('chai');
 
 describe('Single Relationships', () => {
@@ -31,24 +30,19 @@ describe('Single Relationships', () => {
     }
   });
 
-  class Parent extends Model(parentSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Parent extends Model(parentSchema) { }
 
-  class Child extends Model(childSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Child extends Model(childSchema) { }
 
-  const registry = {};
+  const registry = new Registry(Object.assign({
+    models: [
+      Parent,
+      Child
+    ]
+  }, config));
 
-  Parent.attachToRegistry(registry);
-  Child.attachToRegistry(registry);
+  const knex = registry._knex;
 
-  
   before(async () => {
     await Promise.all([
       knex.schema.createTable('Parents', table => {
@@ -168,11 +162,7 @@ describe('Join Relationships', () => {
     }
   });
 
-  class Course extends Model(courseSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Course extends Model(courseSchema) { }
 
   const studentSchema = new Schema({
     courses: {
@@ -181,18 +171,17 @@ describe('Join Relationships', () => {
     }
   });
 
-  class Student extends Model(studentSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Student extends Model(studentSchema) { }
 
-  const registry = {};
+  const registry = new Registry(Object.assign({
+    models: [
+      Student,
+      Course
+    ]
+  }, config));
 
-  Course.attachToRegistry(registry);
-  Student.attachToRegistry(registry);
-  let students;
-  let courses;
+  let knex = registry._knex;
+  let students, courses;
 
   before(async () => {
     await Promise.all([
@@ -269,11 +258,7 @@ describe('Deep Relationships', () => {
       type: Schema.Types.Models,
     }
   });
-  class Principal extends Model(principalSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Principal extends Model(principalSchema) { }
 
   const teacherSchema = new Schema({
     principal: {
@@ -283,27 +268,25 @@ describe('Deep Relationships', () => {
       type: Schema.Types.Models,
     }
   });
-  class Teacher extends Model(teacherSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Teacher extends Model(teacherSchema) { }
 
   const studentSchema = new Schema({
     teacher: {
       type: Schema.Types.Model,
     }
   });
-  class Student extends Model(studentSchema) {
-    static get knex() {
-      return knex;
-    }
-  }
+  class Student extends Model(studentSchema) { }
 
-  const registry = {};
-  Principal.attachToRegistry(registry);
-  Teacher.attachToRegistry(registry);
-  Student.attachToRegistry(registry);
+  const registry = new Registry(Object.assign({
+    models: [
+      Student,
+      Teacher,
+      Principal
+    ]
+  }, config));
+  
+  let knex = registry._knex;
+
   let principal;
   let student;
   before(async () => {
@@ -438,44 +421,21 @@ describe('Multiple Relationships', () => {
     }
   });
 
-  let registry;
+  class Parent extends Model(parentSchema) { }
 
-  class Parent extends Model(parentSchema) {
-    static get knex() {
-      return knex;
-    }
+  class Child extends Model(childSchema) { }
 
-    static get registry() {
-      return registry;
-    }
-  }
+  class School extends Model(schoolSchema) { }
 
-  class Child extends Model(childSchema) {
-    static get knex() {
-      return knex;
-    }
+  let registry = new Registry(Object.assign({
+    models: [
+      Parent,
+      Child,
+      School
+    ]
+  }, config));
 
-    static get registry() {
-      return registry;
-    }
-  }
-
-  class School extends Model(schoolSchema) {
-    static get knex() {
-      return knex;
-    }
-
-    static get registry() {
-      return registry;
-    }
-  }
-
-  registry = {
-    Parent,
-    Child,
-    School
-  };
-
+  let knex = registry._knex;
 
   before(async () => {
     await Promise.all([

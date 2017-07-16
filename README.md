@@ -82,7 +82,11 @@ class Child extends ModelFactory(childSchema) {
   }
 }
 
-const registry = new Registry([
+const registry = new Registry({
+  client: 'sqlite',
+  
+  // ... knex configuration
+}, [
   Child,
   Parent
 ]);
