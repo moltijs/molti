@@ -9,9 +9,10 @@
   "main": "src/index.js",
   "license": "MIT",
   "scripts": {
-    "test:individual": "NODE_ENV=test nyc _mocha --timeout 12000",
+    "test:individual": "cross-env NODE_ENV=test nyc _mocha --timeout 12000",
     "test": "npm run test:individual test",
-    "posttest": "nyc report --reporter=text-lcov | coveralls",
+    "test:ci": "npm run test",
+    "posttest:ci": "nyc report --reporter=text-lcov | coveralls",
     "test:watch": "nodemon -w test -w src --exec \"npm test\""
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "chai": "^4.0.2",
     "chai-http": "^3.0.0",
     "coveralls": "^2.13.1",
+    "cross-env": "^5.0.1",
     "eslint": "^3.19.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0",
