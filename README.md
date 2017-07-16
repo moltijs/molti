@@ -1,8 +1,8 @@
-[![npm](https://img.shields.io/npm/v/molti.svg)]()
-[![npm](https://img.shields.io/npm/dm/molti.svg)]()
+[![npm](https://img.shields.io/npm/v/molti.svg)](https://www.npmjs.com/package/molti)
+[![npm](https://img.shields.io/npm/dm/molti.svg)](https://www.npmjs.com/package/molti)
 [![Coverage Status](https://img.shields.io/coveralls/SaaJoh0783/molti/master.svg)](https://coveralls.io/github/SaaJoh0783/molti?branch=master)
 [![Build Status](https://img.shields.io/travis/SaaJoh0783/molti/master.svg)](https://travis-ci.org/SaaJoh0783/molti)
-[![AppVeyor branch](https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg)]()
+[![AppVeyor branch](https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg)](https://ci.appveyor.com/project/SaaJoh0783/molti)
 
 # Molti
 
