@@ -1,7 +1,7 @@
 [![NPM Version](https://img.shields.io/npm/v/molti.svg)](https://www.npmjs.com/package/molti)
 [![NPM Downloads](https://img.shields.io/npm/dm/molti.svg)](https://www.npmjs.com/package/molti)
-[![Coveralls branch](https://img.shields.io/coveralls/SaaJoh0783/molti/master.svg)](https://coveralls.io/github/SaaJoh0783/molti)[![Travis branch](https://img.shields.io/travis/SaaJoh0783/molti/master.svg?label=linux)](https://travis-ci.org/SaaJoh0783/molti)
-[![AppVeyor branch](https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg?label=windows)](https://ci.appveyor.com/project/SaaJoh0783/molti)
+[![Coveralls branch](https://img.shields.io/coveralls/moltijs/molti/master.svg)](https://coveralls.io/github/moltijs/molti)[![Travis branch](https://img.shields.io/travis/moltijs/molti/master.svg?label=linux)](https://travis-ci.org/moltijs/molti)
+[![AppVeyor branch](https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg?label=windows)](https://ci.appveyor.com/project/moltijs/molti)
 
 # Molti
 
@@ -18,22 +18,16 @@ $ npm install molti
 #### As a server
 
 ```js
-const { Parameter, Response, Application, Handler, Controller } = require('../src/'); // replace with require('molti');
-
-const sampleParam = new Parameter('id').path().string();
-const sampleResponse = new Response(200).name('success').prop('message', 'string');
+const { Parameter, Response, Application, Handler, Controller, Generics } = require('molti');
 
 const sampleController = new Controller({
-  basePath: '/',
-  tag: 'Area',
-  description: 'Some area'
+  basePath: '/'
 });
 
 sampleController.get(new Handler({
   path: '/some_path/:id',
-  description: 'Just some sample path',
-  params: [sampleParam],
-  responses: [sampleResponse],
+  params: [Generics.params.idParam],
+  responses: [Generics.responses.success],
   handler({ id }, { success }) {
     return success({ message: `Found ${id}` });
   }
@@ -77,7 +71,7 @@ const childSchema = new Schema({
 
 class Child extends ModelFactory(childSchema) {
   eat() {
-    return `I, ${this.name}, ate food from ${this.parent.name}`;
+    return `I, ${this.name}, ate ${this.parent.name}'s food`;
   }
 }
 
@@ -91,9 +85,6 @@ const registry = new Registry({
   Parent
 ]);
 
-Parent.findById(1, {
-  withRelated: ['children']
-}).then(parent => {
-  console.log(parent.feedChildren());
-});
+Parent.findById(1, { withRelated: ['children'] })
+  .then(parent => console.log(parent.feedChildren()));
 ```
