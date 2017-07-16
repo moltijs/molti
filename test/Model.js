@@ -364,7 +364,7 @@ describe('Model', () => {
         .select('deletedAt')
         .where('id', newModel.id);
 
-      expect(dbModel[0].deletedAt).to.be.below(Date.now());
+      expect(dbModel[0].deletedAt).not.to.be.above(Date.now());
 
       TestModel = _TestModel;
     });
@@ -387,6 +387,12 @@ describe('Model', () => {
     });
 
     it('should be able to hard delete data', async () => {
+      let _TestModel = TestModel;
+      delete testConfig.deletedAtColumn;
+  
+      TestModel = Model(testSchema, testConfig);
+      TestModel.knex = knex;
+
       newModel = new TestModel(newModel._props);
       await newModel.destroy();
 
@@ -395,6 +401,8 @@ describe('Model', () => {
         .where('id', newModel.id);
 
       expect(dbModel).to.be.eql([]);
+
+      TestModel = _TestModel;
     });
 
 
