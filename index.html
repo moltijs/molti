@@ -1,3 +1,96 @@
-<h1>
-  Welcome to molti!
-</h1>
+<p><a href="https://www.npmjs.com/package/molti"><img src="https://img.shields.io/npm/v/molti.svg" alt="NPM Version" /></a>
+  <a href="https://www.npmjs.com/package/molti"><img src="https://img.shields.io/npm/dm/molti.svg" alt="NPM Downloads" /></a>
+  <a href="https://coveralls.io/github/SaaJoh0783/molti"><img src="https://img.shields.io/coveralls/SaaJoh0783/molti/master.svg" alt="Coveralls branch" /></a><a href="https://travis-ci.org/SaaJoh0783/molti"><img src="https://img.shields.io/travis/SaaJoh0783/molti/master.svg?label=linux" alt="Travis branch" /></a>
+  <a href="https://ci.appveyor.com/project/SaaJoh0783/molti"><img src="https://img.shields.io/appveyor/ci/SaaJoh0783/molti/master.svg?label=windows" alt="AppVeyor branch" /></a></p>
+  
+  <h1 id="molti">Molti</h1>
+  
+  <p>A self documenting extensible framework powered by <code>express</code> and <code>knex</code></p>
+  
+  <h2 id="installation">Installation</h2>
+  
+  <pre><code class="bash language-bash">$ npm install molti
+  </code></pre>
+  
+  <h2 id="basicusage">Basic Usage</h2>
+  
+  <h4 id="asaserver">As a server</h4>
+  
+  <pre><code class="js language-js">const { Parameter, Response, Application, Handler, Controller } = require('../src/'); // replace with require('molti');
+  
+  const sampleParam = new Parameter('id').path().string();
+  const sampleResponse = new Response(200).name('success').prop('message', 'string');
+  
+  const sampleController = new Controller({
+    basePath: '/',
+    tag: 'Area',
+    description: 'Some area'
+  });
+  
+  sampleController.get(new Handler({
+    path: '/some_path/:id',
+    description: 'Just some sample path',
+    params: [sampleParam],
+    responses: [sampleResponse],
+    handler({ id }, { success }) {
+      return success({ message: `Found ${id}` });
+    }
+  }));
+  
+  const sample = new Application({
+    controllers: [sampleController]
+  });
+  
+  sample.listen(3000);
+  </code></pre>
+  
+  <h4 id="asanorm">As an ORM</h4>
+  
+  <pre><code class="js language-js">const { Schema, ModelFactory, Registry } = require('molti');
+  
+  const parentSchema = new Schema({
+    name: {
+      type: Schema.Types.String
+    },
+    children: {
+      type: Schema.Types.Models
+    }
+  });
+  
+  class Parent extends ModelFactory(parentSchema) {
+    feedChildren() {
+      return this.children.map(child =&gt; child.eat());
+    }
+  }
+  
+  const childSchema = new Schema({
+    name: {
+      type: Schema.Types.String
+    },
+    parent: {
+      type: Schema.Types.Model
+    }
+  });
+  
+  class Child extends ModelFactory(childSchema) {
+    eat() {
+      return `I, ${this.name}, ate ${this.parent.name}'s food`;
+    }
+  }
+  
+  const registry = new Registry({
+    client: 'sqlite',
+    connection: {
+      filename: ':memory:'
+    }
+  }, [
+    Child,
+    Parent
+  ]);
+  
+  Parent.findById(1, {
+    withRelated: ['children']
+  }).then(parent =&gt; {
+    console.log(parent.feedChildren());
+  });
+  </code></pre>
