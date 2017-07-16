@@ -50,7 +50,7 @@ sample.listen(3000);
 #### As an ORM
 
 ```js
-const { Schema, ModelFactory, Registry } = require('../src/');
+const { Schema, ModelFactory, Registry } = require('molti');
 
 const parentSchema = new Schema({
   name: {
@@ -92,7 +92,7 @@ const registry = new Registry({
   Parent
 ]);
 
-registry.Parent.findById(1, {
+Parent.findById(1, {
   withRelated: ['children']
 }).then(parent => {
   console.log(parent.feedChildren());
