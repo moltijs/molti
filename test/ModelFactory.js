@@ -22,7 +22,8 @@ let tableName = 'test';
 let testConfig = {
   idColumn: 'id',
   validateOnInit: true,
-  tableName
+  tableName,
+  modelName: 'TestModel'
 };
 
 const knex = require('knex')(config);
@@ -38,12 +39,23 @@ describe('Model', () => {
       table.dateTime('deletedAt').nullable();
       table.dateTime('created_at').nullable();
       table.dateTime('updated_at').nullable();
+
+      table.dateTime('createdAt').nullable();
+      table.dateTime('updatedAt').nullable();
     });
   });
   describe('configuration', () => {
+    it('should be able to attach to an existing registry', () => {
+      let registry = {};
+      TestModel.attachToRegistry(registry);
+
+      expect(TestModel.registry).to.equal(registry);
+      expect(registry.TestModel).to.equal(TestModel);
+    });
+
     it('should assemble a class for a given model', () => {
       expect(TestModel.schema).to.be.eql(testSchema);
-      expect(TestModel.modelName).to.be.eql(TestModel.name);
+      expect(TestModel.modelName).to.be.eql('TestModel');
     });
 
     it('should have the table nane', () => {
@@ -180,7 +192,7 @@ describe('Model', () => {
       expect(error[0].message).to.contain('name');
     });
 
-    it('should support created at timestamp', async () => {
+    it('should support a custom created at timestamp', async () => {
       let TestModel = Model(testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at', updatedAtColumn: 'updated_at' }, testConfig));
       TestModel.knex = knex;
 
@@ -333,8 +345,23 @@ describe('Model', () => {
       let updatedResult = await TestModel.findById(newModel.id);
       expect(updatedResult.name).to.equal(name);
     });
+    
+    it('should support default timestamps', async () => {
+      let TestModel = Model(testSchema, Object.assign({ timestamps: true }, testConfig));
+      TestModel.knex = knex;
 
-    it('should support updated at timestamp', async () => {
+      let result = await TestModel.create({
+        name: 'testing created at'
+      });
+
+      result.name = 'testing updated at';
+
+      await result.save();
+
+      expect(result.updatedAt.getTime()).not.to.be.lessThan(result.createdAt.getTime());
+    });
+
+    it('should support a custom updated at timestamp', async () => {
       let TestModel = Model(testSchema, Object.assign({ timestamps: true, createdAtColumn: 'created_at', updatedAtColumn: 'updated_at' }, testConfig));
       TestModel.knex = knex;
 

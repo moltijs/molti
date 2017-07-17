@@ -17,7 +17,8 @@
         "--colors",
         "${workspaceRoot}/test"
       ],
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "protocol": "inspector"
     }, 
     {
       "type": "node",
@@ -32,7 +33,8 @@
         "--colors",
         "${file}"
       ],
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "protocol": "inspector"      
     }
   ]
 }

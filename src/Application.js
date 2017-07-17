@@ -4,9 +4,10 @@ const Handler = require('./Handler');
 const Parameter = require('./Parameter');
 const Response = require('./Response');
 const DocsRouter = require('./DocsRouter');
+const bodyParser = require('body-parser');
 
 let defaultErrorHandler = (err, req, res, next) => {
-  res.status(500).send(err);
+  res.status(500).send(err.message || err);
 };
 
 class Application extends express {
@@ -20,6 +21,7 @@ class Application extends express {
     super();
     Object.assign(this, express());
 
+    
     let {
       controllers = [],
       errorHandler = defaultErrorHandler,
@@ -35,8 +37,16 @@ class Application extends express {
       info = {},
       definitions = {},
       utils = [],
-      responses = []
+      responses = [],
+      models = [],
+      skipBodyParser
     } = options;
+    
+    if (!skipBodyParser) {
+      this.use(bodyParser.text());
+      this.use(bodyParser.urlencoded({ extended: false }));
+      this.use(bodyParser.json());
+    }
 
     this.controllers = controllers;
     this._name = name;
@@ -51,15 +61,14 @@ class Application extends express {
     this._definitions = definitions;
     this._info = info;
     this._responses = responses;
-
-    this.use((err, req, res, next) => {
-      errorHandler(err, req, res, next);
-    });
+    /* istanbul ignore next */
+    this.use((err, req, res, next) => errorHandler(err, req, res, next));
     this.errorHandler = errorHandler;
 
     this.use(docsPath, DocsRouter(this));
 
     controllers.forEach(ctrl => ctrl.attachToApp(this));
+    models.forEach(model => this._definitions[model.modelName] = model.toSwagger);
   }
 
   static get Controller() {

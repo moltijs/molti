@@ -69,16 +69,16 @@ class Controller {
   }
 
   _handle(handler) {
+    let basePath = (this._basePath + handler.path).replace(/\/\//g, '/');
     handler._controller = this;
 
-    let description = handler.description;
-    let basePath = (this._basePath + handler.path).replace(/\/\//g, '/');
-
-    /* istanbul ignore else */
-    if (isNil(this._paths[basePath])) {
-      this._paths[basePath] = {};
-    }
     if (!handler.skipDocs) {
+      let description = handler.description;
+  
+      /* istanbul ignore else */
+      if (isNil(this._paths[basePath])) {
+        this._paths[basePath] = {};
+      }
       this._paths[basePath][handler.method] = {
         summary: description,
         tags: this._tag,
