@@ -1,6 +1,7 @@
 const { expect } = require('chai');
 const { isFunction } = require('lodash');
 const Controller = require('../src/Controller');
+const Handler = require('../src/Handler');
 
 let isExpressRouter = (router) => {
   return isFunction(router.use) &&
@@ -165,6 +166,42 @@ describe('Controller', () => {
         [200]: {}
       }
     });
+  });
+
+  it('should be able to handle a hidden handler', () => {
+    let handler = {
+      description: 'handler description',
+      path: '/someHiddenPath',
+      method: 'get',
+      skipDocs: true,
+      getRouteHandler(){
+        return () => {};
+      },
+      before: [],
+      after: []
+    };
+
+    sampleController._handle(handler);
+
+    expect(handler._controller).to.be.equal(sampleController);
+    expect(sampleController._paths['/someHiddenPath']).to.be.undefined;
+  });
+
+  it('should be able to construct a handler', () => {
+    let handler = {
+      path: '/somePath',
+      skipDocs: true,
+      handler() {},
+      before: [],
+      params: [],
+      responses: [],
+      after: []
+    };
+
+    let newHandler = sampleController.handler(handler);
+
+    expect(newHandler).to.be.an.instanceOf(Handler);
+    expect(newHandler._controller).to.equal(sampleController);
   });
 
   it('should have handler helpers', () => {

@@ -9,6 +9,6 @@ module.exports = {
   Registry: require('./Registry'),
   ModelLoader: require('./ModelLoader'),
   Schema: require('./ModelSchema'),
-  Config: require('./Config'),
+  Strategy: require('./Strategy'),
   Generics: require('./Generics')
 };

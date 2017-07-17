@@ -57,7 +57,37 @@ describe('Application', () => {
     expect(app).to.equal(parentApp);
   });
 
+  it('should be able to init without a config', () => {
+    const app = new Application();
+
+    expect(isExpressRouter(app)).to.be.true;
+  });
+
   it('should represent an express app', () => {
     expect(isExpressRouter(sampleApplication)).to.be.true;
+  });
+
+  it('should have a basic default error handler', () => {
+    let statusCode, errorResponse;
+    let sampleRes = {
+      status(code) {
+        statusCode = code;
+        return {
+          send(response) {
+            errorResponse = response;
+          }
+        };
+      }
+    };
+
+    Application.defaultErrorHandler('error', null, sampleRes);
+
+    expect(statusCode).to.equal(500);
+    expect(errorResponse).to.equal('error');
+  });
+
+  it('should be able to skip bodyParser', () => {
+    const app = new Application({ skipBodyParser: true });
+    expect(app._router.stack.length).to.be.lessThan(sampleApplication._router.stack.length);
   });
 });

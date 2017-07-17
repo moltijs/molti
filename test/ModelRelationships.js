@@ -59,6 +59,8 @@ describe('Single Relationships', () => {
         id: 1
       }, {
         id: 2
+      }, {
+        id: 3
       }]),
       knex('Children').insert([{
         id: 1,
@@ -90,6 +92,19 @@ describe('Single Relationships', () => {
       });
     });
 
+    it('should handle invalid "withRelated" attributes', async () => {
+      let err;
+      try {
+        await Parent.findById(1, {
+          withRelated: ['non-existent']
+        });
+      } catch(e) {
+        err = e;
+      }
+
+      expect(err.message).to.contain('No such attribute');
+    });
+
     it('should be able to fetch with child records', () => {
       expect(parent.children).to.be.instanceOf(Array);
       expect(parent.children.length).to.equal(2);
@@ -110,6 +125,40 @@ describe('Single Relationships', () => {
         expect(child).to.be.an.instanceof(Child);
         expect(child.parent).to.equal(parent);
       });
+    });
+
+    it('should be able to manually pull the records', async () => {
+      let result = await parent.pullRelated('children');
+
+      expect(result.length).to.equal(2);
+      expect(parent.children).to.equal(result);
+    });
+
+    it('should handle records with no related records', async () => {
+      let yuppy = await Parent.findById(3, {
+        withRelated: ['children']
+      });
+
+      expect(yuppy).to.an.instanceOf(Parent);
+      expect(yuppy.children).to.eql([]);
+    });
+
+    it('should handle records with no related records', async () => {
+      let empty = await Parent.find({id: 4}, {
+        withRelated: ['children']
+      });
+
+      expect(empty).to.eql([]);
+    });
+
+    it('should be able to manually pull the records', async () => {
+      let err;
+      try {
+        await parent.pullRelated('otherChildren');
+      } catch(e) {
+        err = e;
+      }
+      expect(err.message).to.contain('No such relationship');
     });
   });
 

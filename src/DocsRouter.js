@@ -7,27 +7,18 @@ module.exports = (app) => {
 
   DocsRouter.use('/', express.static(join(__dirname, 'docs')));
 
-  DocsRouter.get('/', (req, res) => {
-    res.sendFile(join(__dirname, 'docs', 'index.html'));
-  });
-
   DocsRouter.get('/swagger.json', (req, res) => {
     let swag = {
       swagger: "2.0",
       info: {
-        title: app._name || 'No name',
-        description: app._description || 'No description',
-        version: app._version || '0.0.0'
+        title: app._name,
+        description: app._description,
+        version: app._version
       },
-      host: app._host || 'localhost',
-      schemes: app._schemes || [
-        'https',
-        'http'
-      ],
-      scheme: app._scheme || 'https',
-      produces: app._produces || [
-        'application/json'
-      ],
+      host: app._host,
+      schemes: app._schemes,
+      scheme: app._scheme,
+      produces: app._produces,
       paths: app._paths,
       definitions: app._definitions
     };

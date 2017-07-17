@@ -11,17 +11,17 @@ const Types = {
 };
 
 const SchemaTypes = {
-  [Types.String]: String,
-  [Types.Number]: Number,
-  [Types.Boolean]: Boolean,
-  [Types.Date]: Date,
+  [Types.String]: (input) => '' + input,
+  [Types.Number]: (input) => +input,
+  [Types.Boolean]: (input) => !!input,
+  [Types.Date]: (input) => new Date(input),
   get [Types.Model]() {
     return require('./ModelFactory');
   },
   get [Types.Models](){
     return [require('./ModelFactory')];
   },
-  [Types.JSON]: JSON
+  [Types.JSON]: input => input.toJSON ? input.toJSON() : input
 };
 
 const primitiveTypes = {
@@ -109,7 +109,7 @@ class Schema {
         formatted['_' + key] = props[key];
 
         formatted.__defineGetter__(key, () => {
-          return new SchemaTypes[type](formatted['_' + key]);
+          return SchemaTypes[type](formatted['_' + key]);
         });
 
         formatted.__defineSetter__(key, (value) => {
@@ -123,7 +123,6 @@ class Schema {
 
   get jsonSchema() {
     const withRefs = {
-      title: this._model ? this._model.tableName : undefined,
       type: 'object',
       properties: {},
       required: []
@@ -153,5 +152,6 @@ class Schema {
 }
 
 Schema.Types = Schema.SchemaTypes = Types;
+Schema._primitives = primitiveTypes;
 
 module.exports = Schema;
