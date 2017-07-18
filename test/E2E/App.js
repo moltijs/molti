@@ -3,7 +3,6 @@ const Controller = require('../../src/Controller');
 const Handler = require('../../src/Handler');
 const Generics = require('../../src/Generics');
 const registry = require('./Models');
-console.log(Controller)
 const controller = new Controller({
   basePath: '/hospital/'
 });
