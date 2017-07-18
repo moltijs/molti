@@ -9,6 +9,8 @@
 
 A self documenting extensible framework powered by `express` and `knex`
 
+### More documentation coming!
+
 ## Installation
 
 ```bash

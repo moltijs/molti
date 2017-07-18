@@ -1,16 +1,25 @@
 const { Schema, ModelFactory } = require('molti');
 
-const todoSchema = new Schema({
-  task: {
+const userSchema = new Schema({
+  email: {
     type: Schema.Types.String
   },
-  user: {
-    type: Schema.Types.Model
+  // molti infers related model (todos -> Todo)
+  todos: {
+    type: Schema.Types.Models
   }
 });
 
-class Todo extends ModelFactory(todoSchema) {
-
+class User extends ModelFactory(userSchema) {
+  static async getUserString(id) {
+    let user = await this.findById(id, {
+      withRelated: ['todos']
+    });
+    return user.getTasksString();
+  }
+  getTasksString() {
+    return this.todos.map(todo => todo.info).join('\n');
+  }
 }
 
-module.exports = Todo;
+module.exports = User;

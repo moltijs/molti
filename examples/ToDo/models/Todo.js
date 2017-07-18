@@ -13,7 +13,9 @@ const todoSchema = new Schema({
 });
 
 class Todo extends ModelFactory(todoSchema) {
-
+  get info() {
+    return `${this.task} is due by ${this.user.email} on ${this.dueDate}`;
+  }
 }
 
 module.exports = Todo;
