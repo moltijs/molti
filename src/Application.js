@@ -4,9 +4,11 @@ const Handler = require('./Handler');
 const Parameter = require('./Parameter');
 const Response = require('./Response');
 const DocsRouter = require('./DocsRouter');
+const RestControllerFactory = require('./RestControllerFactory');
 const bodyParser = require('body-parser');
 
 let defaultErrorHandler = (err, req, res, next) => {
+  console.error(err.stack);
   res.status(500).send(err.message || err);
 };
 
@@ -67,8 +69,14 @@ class Application extends express {
 
     this.use(docsPath, DocsRouter(this));
 
+    models.forEach(model => {
+      this._definitions[model.modelName] = model.toSwagger;
+      
+      if (model.autoRestEnabled) {
+        controllers.push(RestControllerFactory(model));
+      }
+    });
     controllers.forEach(ctrl => ctrl.attachToApp(this));
-    models.forEach(model => this._definitions[model.modelName] = model.toSwagger);
   }
 
   static get Controller() {

@@ -8,6 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha Tests",
+      "runtimeExecutable": "node",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
@@ -24,6 +25,7 @@
       "type": "node",
       "request": "launch",
       "name": "Mocha Test Current File",
+      "runtimeExecutable": "node",
       "program": "${workspaceRoot}/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",

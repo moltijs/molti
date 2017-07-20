@@ -8,7 +8,7 @@ const hospitalSchema = new Schema({
   }
 });
 
-class Hospital extends ModelFactory(hospitalSchema) {
+class Hospital extends ModelFactory(hospitalSchema, { autoRestEnabled: true }) {
   getPatients() {
     return this.doctors.reduce((patients, doctor) => patients.concat(doctor.patients), []);
   }
@@ -21,11 +21,11 @@ const doctorSchena = new Schema({
   }
 });
 
-const Doctor = ModelFactory(doctorSchena, { modelName: 'Doctor' });
+const Doctor = ModelFactory(doctorSchena, { modelName: 'Doctor', autoRestEnabled: true  });
 
 const patientSchema = new Schema({ });
 
-const Patient = ModelFactory(patientSchema, { modelName: 'Patient' });
+const Patient = ModelFactory(patientSchema, { modelName: 'Patient', autoRestEnabled: true });
 
 module.exports = new Registry({
   client: 'sqlite3',

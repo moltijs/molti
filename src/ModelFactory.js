@@ -30,7 +30,8 @@ function Model(schema, config = {}) {
     deletedAtColumn = null,
     createdAtColumn,
     updatedAtColumn,
-    modelName
+    modelName,
+    autoRestEnabled
   } = config;
 
   Object.keys(schema._formatted).forEach((key) => {
@@ -128,6 +129,10 @@ function Model(schema, config = {}) {
 
     static get schema() {
       return schema;
+    }
+
+    static get autoRestEnabled() {
+      return autoRestEnabled;
     }
 
     static get toSwagger() {
@@ -287,7 +292,7 @@ function Model(schema, config = {}) {
         updateQuery.where(query);
       }
 
-      return updateQuery.update(updates);
+      return updateQuery.update(updates, '*');
     }
 
     static async restore(id) {
