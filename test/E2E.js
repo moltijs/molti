@@ -74,11 +74,47 @@ describe('E2E', () => {
       expect(body.swagger).to.equal("2.0");
 
       expect(body.definitions.Hospital).to.eql(models.Hospital.toSwagger);
-      // expect(body.definitions.Doctor).to.eql(models.Doctor.toSwagger);
-      // expect(body.definitions.Patient).to.eql(models.Patient.toSwagger);
+      expect(body.definitions.Doctor).to.eql(models.Doctor.toSwagger);
+      expect(body.definitions.Patient).to.eql(models.Patient.toSwagger);
     });
   });
 
+  describe('as a restful API', () => {
+    it('should have a create endpoint', async () => {
+      let { body } = await request.post('/Hospital/').send({record: {id: 2}});
+      expect(body.record.id).to.equal(2);
+    });
+
+    it('should have a get all endpoint', async () => {
+      let { body } = await request.get('/Hospital/');
+
+      expect(body.records.length).to.equal(2);
+      expect(body.count).to.equal(2);
+    });
+
+    it('should have a get one endpoint', async () => {
+      let { body: { record } } = await request.get('/Hospital/2');
+
+      expect(record.id).to.equal(2);
+    });
+
+    it('should have an update one endpoint', async () => {
+      await request.put('/Doctor/2')
+        .send({ record: { hospitalId: 2 } });
+      
+      let doctor = await models.Doctor.findById(2);
+
+      expect(doctor.hospitalId).to.equal(2);
+    });
+
+    it('should have a delete endpoint', async () => {
+      await request.delete('/Doctor/2');
+      
+      let doctor = await models.Doctor.findById(2);
+
+      expect(doctor).to.be.null;
+    });
+  });
 
   after(() => {
     return Promise.all([

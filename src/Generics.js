@@ -23,10 +23,25 @@ module.exports = {
         .query()
         .string();
     },
-    get record() {
+    get limitParam () {
+      return new Parameter('limit')
+        .query()
+        .number();
+    },
+    get skipParam () {
+      return new Parameter('skip')
+        .query()
+        .number();
+    },
+    get record () {
       return new Parameter('record')
         .body()
         .require();
+    },
+    get relatedParam () {
+      return new Parameter('related')
+        .query()
+        .string();
     }
   },
   responses: {
@@ -69,7 +84,7 @@ module.exports = {
     createdModel (modelName) {
       return new Response(201)
         .name('created')
-        .prop('record', modelName);
+        .ref('record', modelName);
     },
 
     get noContent () {
