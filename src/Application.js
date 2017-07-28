@@ -70,7 +70,7 @@ class Application extends express {
     this.use(docsPath, DocsRouter(this));
 
     models.forEach(model => {
-      this._definitions[model.modelName] = model.toSwagger.withRefs;
+      this._definitions[model.modelName] = model.toSwagger;
       
       if (model.autoRestEnabled) {
         controllers.push(RestControllerFactory(model));
