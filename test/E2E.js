@@ -69,9 +69,7 @@ describe('E2E', () => {
     });
   
     it('should have a proper swagger json', async () => {
-      let { body } = await request.get('/docs/swagger.json');
-      console.log('asdf', body);
-  
+      let { body } = await request.get('/docs/swagger.json');  
       expect(body.swagger).to.equal("2.0");
       expect(body.definitions.Hospital).to.eql(models.Hospital.toSwagger);
       expect(body.definitions.Doctor).to.eql(models.Doctor.toSwagger);
