@@ -30,7 +30,7 @@ const sampleController = new Controller({
 
 sampleController.get(new Handler({
   path: '/some_path/:id',
-  params: [Generics.params.idParam],
+  params: [Generics.params.id],
   responses: [Generics.responses.success],
   handler({ id }, { success }) {
     return success({ message: `Found ${id}` });
