@@ -3,32 +3,32 @@ const Parameter = require('./Parameter');
 
 module.exports = {
   params: {
-    get idParam () {
+    get id () {
       return new Parameter('id')
         .path()
         .number();
     },
-    get guidParam () {
+    get guid () {
       return new Parameter('guid')
         .path()
         .string();
     },
-    get qParam () {
+    get q () {
       return new Parameter('q')
         .query()
         .string();
     },
-    get queryParam () {
+    get query () {
       return new Parameter('query')
         .query()
         .string();
     },
-    get limitParam () {
+    get limit () {
       return new Parameter('limit')
         .query()
         .number();
     },
-    get skipParam () {
+    get skip () {
       return new Parameter('skip')
         .query()
         .number();
@@ -38,7 +38,7 @@ module.exports = {
         .body()
         .require();
     },
-    get relatedParam () {
+    get related () {
       return new Parameter('related')
         .query()
         .string();

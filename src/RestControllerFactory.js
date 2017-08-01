@@ -11,7 +11,7 @@ module.exports = (model) => {
     path: '/',
     description: `Inserts a ${model.modelName}`,
     params: [
-      params.record.describe(`${model.modelName} to be created`)
+      params.record.references(model.modelName).describe(`${model.modelName} to be created`)
     ],
     responses: [
       responses.createdModel(model.modelName),
@@ -31,34 +31,34 @@ module.exports = (model) => {
     path: '/',
     description: 'Queries a model using the query parameter and returns a page of results with the count',
     params: [
-      params.qParam.describe('JSON representation of a filter'),
-      params.limitParam.describe('Max records in response'),
-      params.skipParam.describe('Row to start from'),
-      params.relatedParam.describe('Related records to pull in')
+      params.q.describe('JSON representation of a filter'),
+      params.limit.describe('Max records in response'),
+      params.skip.describe('Row to start from'),
+      params.related.describe('Related records to pull in')
     ],
     responses: [
       responses.foundModelList(model.modelName).prop('count', 'number').describe(`List of ${model.modelName} with total count of all records that match query`),
       responses.badRequest
     ],
 
-    async handler({ query='{}', limit, start=0, related }, { foundList, badRequest }) {
+    async handler({ q = '{}', limit, start = 0, related }, { foundList, badRequest }) {
       try {
-        query = JSON.parse(query);
+        q = JSON.parse(q);
       } catch(err) {
-        return badRequest(`Invalid query input`);
+        return badRequest({ message: `Invalid query input` });
       }
 
       let [records, [{'count(*)': count}]] = await Promise.all([
-        model.find((q) => {
-          q.where(query).offset(start);
+        model.find((query) => {
+          query.where(q).offset(start);
           if (limit) {
-            q.limit(limit);
+            query.limit(limit);
           }
         }, {
           withRelated: related ? [related.split(',')] : undefined
         }),
-        model.find((q) => {
-          q.where(query).count();
+        model.find((query) => {
+          query.where(q).count();
         })
       ]);
       return foundList({
@@ -73,8 +73,8 @@ module.exports = (model) => {
     path: '/:id',
     description: `Finds a specific ${model.modelName} using the primary key`,
     params: [
-      params.idParam,
-      params.relatedParam
+      params.id,
+      params.related
     ],
     responses: [
       responses.foundModel(model.modelName)
@@ -96,8 +96,8 @@ module.exports = (model) => {
     path: '/:id',
     description: `Finds and replaces an existing record with the ${model.modelName} in the body`,
     params: [
-      params.idParam,
-      params.record.describe('Record to update')
+      params.id,
+      params.record.references(model.modelname).describe('Record to update')
     ],
     responses: [
       responses.success
@@ -117,7 +117,7 @@ module.exports = (model) => {
     path: '/:id',
     description: `Finds and removes an existing ${model.modelName} by id`,
     params: [
-      params.idParam
+      params.id
     ],
     responses: [
       responses.success

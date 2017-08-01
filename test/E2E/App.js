@@ -8,7 +8,7 @@ const controller = new Controller({
 });
 
 controller.get(new Handler({
-  params: [Generics.params.idParam],
+  params: [Generics.params.id],
   responses: [Generics.responses.foundModelList('Patient')],
   path: '/:id/getPatients',
   async handler({ id }, { foundList }, { models }) {

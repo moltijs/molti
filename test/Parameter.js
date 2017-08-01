@@ -17,7 +17,7 @@ let mockRequest = {
 };
 
 describe('Parameter', () => {
-  let sampleParam;
+  let sampleParam = new Parameter();
   beforeEach(() => {
     sampleParam = new Parameter();
   });
@@ -109,22 +109,62 @@ describe('Parameter', () => {
       sampleParam.allowNull();
       expect(sampleParam._allowNull).to.be.true;
     });
+
+    it('should support enumerable values', () => {
+      sampleParam.enum([1, 2, 3, 4]);
+      expect(sampleParam._values).to.eql([1, 2, 3, 4]);
+    });
   });
   describe('swagger', () => {
     it('should be able to generate swag', () => {
-      sampleParam
+      sampleParam = new Parameter()
         .param('name')
         .body()
         .require()
         .string()
         .describe('described');
       
-      expect(sampleParam.toSwagger()).to.be.eql({
+      expect(sampleParam.toSwagger()).to.eql({
         name: 'name',
         in: 'body',
         required: true,
         type: 'string',
         description: 'described'
+      });
+    });
+
+    it('should support enum types', () => {
+      sampleParam = new Parameter('color')
+        .string()
+        .path()
+        .enum(['blue', 'green']);
+
+      expect(sampleParam.toSwagger()).to.eql({
+        name: 'color',
+        in: 'path',
+        type: 'string',
+        enum: ['blue', 'green'],
+        required: false,
+        description: ''
+      });
+    });
+
+
+
+    it('should support references', () => {
+      sampleParam = new Parameter('color')
+        .path()
+        .references('SomeModel');
+
+      expect(sampleParam.toSwagger()).to.eql({
+        name: 'color',
+        in: 'path',
+        type: 'object',
+        schema: {
+          $ref: 'SomeModel'
+        },
+        required: false,
+        description: ''
       });
     });
 
@@ -171,6 +211,30 @@ describe('Parameter', () => {
       sampleParam.param('name');
       sampleParam.applyToRequest(request, 'value');
       expect(request).to.be.eql({name: 'value'});
+    });
+
+    it('should support valid enum data types', () => {
+      let request = {
+        query: {
+          value: 1
+        }
+      };
+
+      sampleParam = new Parameter('value').query().enum([1, 2]);
+
+      expect(sampleParam.validateExists(request)).to.be.true;
+    });
+
+    it('should support invalid enum data types', () => {
+      let request = {
+        query: {
+          value: 4
+        }
+      };
+
+      sampleParam = new Parameter('value').query().enum([1, 2]);
+
+      expect(sampleParam.validateRequest(request, {}).valid).to.be.false;
     });
   });
   describe('data validation', () => {

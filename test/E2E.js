@@ -90,6 +90,25 @@ describe('E2E', () => {
       expect(body.count).to.equal(2);
     });
 
+    it('should block invalid query inputs', async () => {
+      let err;
+      try {
+        await request.get('/Hospital/?q={{{');
+      } catch(e) {
+        err = e;
+      }
+
+      expect(err.response.body.message).to.equal('Invalid query input');
+      expect(err.response.status).to.equal(400);
+    });
+
+    it('should accept a limit', async () => {
+      let { body } = await request.get('/Hospital/?limit=1');
+
+      expect(body.records.length).to.equal(1);
+      expect(body.count).to.equal(2);
+    });
+
     it('should have a get one endpoint', async () => {
       let { body: { record } } = await request.get('/Hospital/2');
 

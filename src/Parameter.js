@@ -38,7 +38,7 @@ class Parameter {
   _set(attr, val) {
     if(isUndefined(val)) return this[attr];
 
-    this[attr] === '' ? (this[attr] = val) : (this[attr] += `|${val}`);
+    !this[attr] ? (this[attr] = val) : (this[attr] += `|${val}`);
     return this;
   }
   /**
@@ -173,6 +173,17 @@ class Parameter {
   }
 
   /**
+   * 
+   * 
+   * @param {any} values 
+   * @returns 
+   * @memberof Parameter
+   */
+  enum(values) {
+    return this._set('_values', [...values]);
+  }
+
+  /**
    * Sets the type of validation to boolean
    * 
    * @returns {Param} The instance on which this method was called.
@@ -209,14 +220,28 @@ class Parameter {
     return this._setStrict('_description', description);
   }
 
+  references($ref) {
+    return this._setStrict('_schema', {$ref});
+  }
+
   toSwagger() {
-    return {
+    let returnVal = {
       name: this._param,
       in: this._location,
       description: this._description,
       required: this._required,
-      type: this._type === 'any' ? 'object' : this._type
+      type: ((this._type === 'any') || this._schema) ? 'object' : this._type
     };
+
+    if (this._schema) {
+      returnVal.schema = this._schema;
+    }
+
+    if (this._values) {
+      returnVal.enum = this._values;
+    }
+
+    return returnVal;
   }
   /**
    * 
@@ -296,6 +321,11 @@ class Parameter {
   handleString(val) {
     return isString(val) ? ('' + val) : undefined;
   }
+
+  handleEnum(val) {
+    return this._values.includes(val);
+  }
+
   validateRequest(request, params) {
     if (!this.validateExists(request)) {
       return {
@@ -318,6 +348,14 @@ class Parameter {
       potentialVal = this.handleBoolean(val);
       break;
     }
+
+    if (this._values && !this.handleEnum(potentialVal)) {
+      return {
+        valid: false,
+        reason: `${this._param} in the ${this._location} is not one of ${this._values}`
+      };
+    }
+
     if (isUndefined(potentialVal)) {
       return {
         valid: false,

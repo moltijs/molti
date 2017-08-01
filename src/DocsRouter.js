@@ -6,6 +6,7 @@ module.exports = (app) => {
   const DocsRouter = express.Router();
 
   DocsRouter.use('/', express.static(join(__dirname, 'docs')));
+  /* istanbul ignore next */
   DocsRouter.get('/', (req, res) => {
     res.sendFile(join(__dirname, 'docs', 'index.html'));
   });
