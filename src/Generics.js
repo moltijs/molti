@@ -42,6 +42,16 @@ module.exports = {
       return new Parameter('related')
         .query()
         .string();
+    },
+    get username () {
+      return new Parameter('username')
+        .body()
+        .string();
+    },
+    get password () {
+      return new Parameter('password')
+        .body()
+        .string();
     }
   },
   responses: {
