@@ -149,8 +149,6 @@ describe('Parameter', () => {
       });
     });
 
-
-
     it('should support references', () => {
       sampleParam = new Parameter('color')
         .path()
@@ -161,7 +159,7 @@ describe('Parameter', () => {
         in: 'path',
         type: 'object',
         schema: {
-          $ref: 'SomeModel'
+          $ref: '#/definitions/SomeModel'
         },
         required: false,
         description: ''

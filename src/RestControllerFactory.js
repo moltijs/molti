@@ -97,7 +97,7 @@ module.exports = (model) => {
     description: `Finds and replaces an existing record with the ${model.modelName} in the body`,
     params: [
       params.id,
-      params.record.references(model.modelname).describe('Record to update')
+      params.record.references(model.modelName).describe('Record to update')
     ],
     responses: [
       responses.success

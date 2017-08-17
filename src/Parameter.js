@@ -221,6 +221,10 @@ class Parameter {
   }
 
   references($ref) {
+    if (!$ref.includes('definitions')) {
+      $ref = `#/definitions/${$ref}`;
+    }
+
     return this._setStrict('_schema', {$ref});
   }
 
