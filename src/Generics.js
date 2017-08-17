@@ -55,6 +55,11 @@ module.exports = {
     }
   },
   responses: {
+    get accepted () {
+      return new Response(202)
+        .name('accepted')
+        .prop('message', 'string');
+    },
     get success () {
       return new Response(200)
         .name('success')
