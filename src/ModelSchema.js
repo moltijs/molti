@@ -90,14 +90,25 @@ const primitiveTypes = {
   }
 };
 class Schema {
-  constructor(schemaDefinition) {
+  /**
+   * 
+   * @param {Object} schemaDefinition Description of the schema being defined
+   * @param {Object | Object[] | undefined} args Overloads the constructor to allow for redirecting to Schema.extending
+   */
+  constructor(schemaDefinition, ...args) {
+    if (args.length > 0) {
+      return Schema.extending(schemaDefinition, ...args);
+    }
+
     this._original = schemaDefinition;
     this._formatted = {};
     Object.keys(schemaDefinition).forEach(key => {
-      if (!schemaDefinition[key].type) throw new ReferenceError('No type specified for ' + key + ' (nested objects are not supported)');
-      if (!SchemaTypes[schemaDefinition[key].type]) throw new ReferenceError('Unknown type ' + schemaDefinition[key].type);
+      if (schemaDefinition[key]) {
+        if (!schemaDefinition[key].type) throw new ReferenceError('No type specified for ' + key + ' (nested objects are not supported)');
+        if (!SchemaTypes[schemaDefinition[key].type]) throw new ReferenceError('Unknown type ' + schemaDefinition[key].type);
 
-      this._formatted[key] = this._original[key];
+        this._formatted[key] = this._original[key];
+      }
     });
   }
 
@@ -150,6 +161,41 @@ class Schema {
     return { withRefs, withoutRefs };
   }
 }
+
+/**
+ * @param {Object} schemaDefinition The new schema definition including any properties to be overwritten of the baseDefinitions
+ * @param {Object[] | Object} base Either an array of a single object of base definitions that the schemaDefinition is extending
+ */
+Schema.extending = function (schemaDefinition, ...base) {
+  const builder = {};
+
+  if (base[0] instanceof Array) {
+    base = [...base[0]];
+  }
+
+  function assignToBuilder (def) {
+    if (def instanceof Schema) {
+      assignToBuilder(def._formatted);
+    } else {
+      Object.keys(def).forEach(key => {
+        if (def[key]) {
+          builder[key] = def[key];
+        }
+      });
+    }
+  }
+
+  let reversed = [];
+  for (let arg of base) {
+    reversed = [arg, ...reversed];
+  }
+
+  reversed.forEach(assignToBuilder);
+
+  assignToBuilder(schemaDefinition);
+
+  return new Schema(builder);
+};
 
 Schema.Types = Schema.SchemaTypes = Types;
 Schema._primitives = primitiveTypes;

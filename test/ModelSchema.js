@@ -1,5 +1,7 @@
 const Schema = require('../src/ModelSchema');
-const { expect } = require('chai');
+const chai = require('chai');
+chai.use(require('chai-spies'));
+const { expect } = chai;
 
 describe('Schema Constructor', () => {
   it('should instantiate', () => {
@@ -45,6 +47,185 @@ describe('Schema Constructor', () => {
     }
 
     expect(err).not.to.be.undefined;
+  });
+
+  it('should handle an explicitly undefined iterable property as a non-property', () => {
+    let err;
+    try {
+      new Schema({
+        id: undefined
+      });
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should not add keys with undefined values to the formatted dictionary', () => {
+    const s = new Schema({ id: undefined });
+
+    const keys = Object.keys(s._formatted);
+
+    expect(keys.indexOf('id')).to.eq(-1);
+  });
+
+  it('should call Schema.extending when passed base schemas', () => {
+    const spy = chai.spy.on(Schema, 'extending');
+
+    new Schema({}, {}, {});
+
+    expect(spy).to.have.been.called();
+  });
+});
+
+describe('Schema extending', () => {
+  const baseDefinitions = [{
+    foo: {
+      type: Schema.Types.String
+    }
+  }, {
+    bar: {
+      type: Schema.Types.Number
+    }
+  }, {
+    foo: {
+      type: Schema.Types.Number
+    }
+  }];
+
+  it('should return an instance of Schema', () => {
+    const s = new Schema.extending({}, [{}]);
+
+    expect(s).to.be.instanceof(Schema);
+  });
+
+  describe('should have all the properties of the base definitions including', () => {
+    const s = new Schema.extending({
+      baz: {
+        type: Schema.Types.Boolean
+      }
+    }, baseDefinitions);
+
+    it('foo', () => {
+      expect(s._formatted.foo).not.to.be.undefined;
+    });
+
+    it('bar', () => {
+      expect(s._formatted.bar).not.to.be.undefined;
+    });
+
+    it('baz', () => {
+      expect(s._formatted.baz).not.to.be.undefined;
+    });
+  });
+
+  it('should handle plain object definitions', () => {
+    let err;
+    try {
+      new Schema.extending({
+        baz: {
+          type: Schema.Types.Boolean
+        }
+      }, baseDefinitions);
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should handle instances of Schema in the base definitions', () => {
+    let err;
+    try {
+      new Schema.extending({
+        baz: {
+          type: Schema.Types.Boolean
+        }
+      }, [...baseDefinitions, new Schema({
+        bang: {
+          type: Schema.Types.JSON
+        }
+      })]);
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should handle instance of Schema in the new schema definitions', () => {
+    let err;
+    try {
+      new Schema.extending(new Schema({
+        baz: {
+          type: Schema.Types.Boolean
+        }
+      }), baseDefinitions);
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should handle an single base definition (not array of)', () => {
+    let err;
+    try {
+      new Schema.extending({
+        baz: {
+          type: Schema.Types.Boolean
+        }
+      }, {
+        bar: {
+          type: Schema.Types.Number
+        }
+      });
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should over-write from right to left', () => {
+    const s = new Schema.extending({
+      baz: {
+        type: Schema.Types.Boolean
+      }
+    }, baseDefinitions);
+
+    expect(s._formatted.foo.type).to.equal(Schema.Types.String);
+  });
+
+  it('should handle a list of arguments instead of an array', () => {
+    const s = new Schema.extending({
+      baz: {
+        type: Schema.Types.Boolean
+      }
+    }, ...baseDefinitions);
+
+    expect(s._formatted.foo.type).to.equal(Schema.Types.String);
+  });
+
+  describe('should handle an undefined iterable property definition in any of the arguments', () => {
+    it('schemaDefinition', () => {
+      const s = new Schema.extending({
+        baz: undefined
+      }, baseDefinitions);
+  
+      expect(s._formatted.baz).to.be.undefined;
+    });
+
+    it('base', () => {
+      const s = new Schema.extending({
+        baz: undefined
+      }, [...baseDefinitions, {
+        bang: undefined
+      }]);
+
+      expect(s._formatted.bang).to.be.undefined;
+    });
   });
 });
 
