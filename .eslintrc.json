@@ -24,10 +24,10 @@
         "node": true,
         "mocha": true
     },
-    "ecmaFeatures": {
-        "modules": false
-    },
     "parserOptions": {
+        "ecmaFeatures": {
+            "modules": false
+        },
         "sourceType": "module"
     }
 }
