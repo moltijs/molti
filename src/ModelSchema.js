@@ -97,7 +97,7 @@ class Schema {
       if (schemaDefinition[key]) {
         if (!schemaDefinition[key].type) throw new ReferenceError('No type specified for ' + key + ' (nested objects are not supported)');
         if (!SchemaTypes[schemaDefinition[key].type]) throw new ReferenceError('Unknown type ' + schemaDefinition[key].type);
-        
+
         this._formatted[key] = this._original[key];
       }
     });
@@ -152,6 +152,41 @@ class Schema {
     return { withRefs, withoutRefs };
   }
 }
+
+/**
+ * @param {Object} schemaDefinition The new schema definition including any properties to be overwritten of the baseDefinitions
+ * @param {Object[] | Object} base Either an array of a single object of base definitions that the schemaDefinition is extending
+ */
+Schema.extending = function (schemaDefinition, ...base) {
+  const builder = {};
+
+  if (base[0] instanceof Array) {
+    base = [...base[0]];
+  }
+
+  function assignToBuilder (def) {
+    if (def instanceof Schema) {
+      assignToBuilder(def._formatted);
+    } else {
+      Object.keys(def).forEach(key => {
+        if (def[key]) {
+          builder[key] = def[key];
+        }
+      });
+    }
+  }
+
+  let reversed = [];
+  for (let arg of base) {
+    reversed = [arg, ...reversed];
+  }
+
+  reversed.forEach(assignToBuilder);
+
+  assignToBuilder(schemaDefinition);
+
+  return new Schema(builder);
+};
 
 Schema.Types = Schema.SchemaTypes = Types;
 Schema._primitives = primitiveTypes;
