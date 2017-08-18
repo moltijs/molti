@@ -1,5 +1,7 @@
 const Schema = require('../src/ModelSchema');
-const { expect } = require('chai');
+const chai = require('chai');
+chai.use(require('chai-spies'));
+const { expect } = chai;
 
 describe('Schema Constructor', () => {
   it('should instantiate', () => {
@@ -66,6 +68,14 @@ describe('Schema Constructor', () => {
     const keys = Object.keys(s._formatted);
 
     expect(keys.indexOf('id')).to.eq(-1);
+  });
+
+  it('should call Schema.extending when passed base schemas', () => {
+    const spy = chai.spy.on(Schema, 'extending');
+
+    new Schema({}, {}, {});
+
+    expect(spy).to.have.been.called();
   });
 });
 

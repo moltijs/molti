@@ -90,7 +90,16 @@ const primitiveTypes = {
   }
 };
 class Schema {
-  constructor(schemaDefinition) {
+  /**
+   * 
+   * @param {Object} schemaDefinition Description of the schema being defined
+   * @param {Object | Object[] | undefined} args Overloads the constructor to allow for redirecting to Schema.extending
+   */
+  constructor(schemaDefinition, ...args) {
+    if (args.length > 0) {
+      return Schema.extending(schemaDefinition, ...args);
+    }
+
     this._original = schemaDefinition;
     this._formatted = {};
     Object.keys(schemaDefinition).forEach(key => {

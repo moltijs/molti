@@ -21,6 +21,7 @@
   "dependencies": {
     "ajv": "^5.1.5",
     "body-parser": "^1.17.2",
+    "chai-spies": "^0.7.1",
     "express": "^4.15.3",
     "knex": "^0.13.0",
     "lodash": "^4.17.4",
