@@ -46,6 +46,27 @@ describe('Schema Constructor', () => {
 
     expect(err).not.to.be.undefined;
   });
+
+  it('should handle an explicitly undefined iterable property as a non-property', () => {
+    let err;
+    try {
+      new Schema({
+        id: undefined
+      });
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should not add keys with undefined values to the formatted dictionary', () => {
+    const s = new Schema({ id: undefined });
+
+    const keys = Object.keys(s._formatted);
+
+    expect(keys.indexOf('id')).to.eq(-1);
+  });
 });
 
 describe('Schema Types', () => {

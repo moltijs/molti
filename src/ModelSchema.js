@@ -94,10 +94,12 @@ class Schema {
     this._original = schemaDefinition;
     this._formatted = {};
     Object.keys(schemaDefinition).forEach(key => {
-      if (!schemaDefinition[key].type) throw new ReferenceError('No type specified for ' + key + ' (nested objects are not supported)');
-      if (!SchemaTypes[schemaDefinition[key].type]) throw new ReferenceError('Unknown type ' + schemaDefinition[key].type);
-
-      this._formatted[key] = this._original[key];
+      if (schemaDefinition[key]) {
+        if (!schemaDefinition[key].type) throw new ReferenceError('No type specified for ' + key + ' (nested objects are not supported)');
+        if (!SchemaTypes[schemaDefinition[key].type]) throw new ReferenceError('Unknown type ' + schemaDefinition[key].type);
+        
+        this._formatted[key] = this._original[key];
+      }
     });
   }
 
