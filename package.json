@@ -1,13 +1,13 @@
 {
   "name": "molti",
-  "version": "1.2.5",
+  "version": "0.0.0-development",
   "engines": {
     "node": ">=7.9"
   },
   "description": "Extendable web framework",
   "repository": {
     "type": "git",
-    "url": "https://github.com/SaaJoh0783/molti.git"
+    "url": "https://github.com/moltijs/molti.git"
   },
   "main": "src/index.js",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "test": "npm run test:individual test",
     "test:ci": "npm run test",
     "posttest:ci": "nyc report --reporter=text-lcov | coveralls",
-    "test:watch": "nodemon -w test -w src --exec \"npm test\""
+    "test:watch": "nodemon -w test -w src --exec \"npm test\"",
+    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
   },
   "dependencies": {
     "ajv": "^5.1.5",
@@ -40,6 +41,7 @@
     "nodemon": "^1.11.0",
     "nyc": "^11.0.2",
     "rimraf": "^2.6.1",
+    "semantic-release": "^7.0.2",
     "sqlite3": "^3.1.8"
   },
   "nyc": {
