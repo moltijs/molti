@@ -173,13 +173,27 @@ Schema.extending = function (schemaDefinition, ...base) {
     base = [...base[0]];
   }
 
+  function mergePropertyDescriptions (left, right) {
+    Object.keys(right).forEach(key => {
+      if (right[key] !== undefined) {
+        left[key] = right[key];
+      }
+    });
+
+    return left;
+  }
+
   function assignToBuilder (def) {
     if (def instanceof Schema) {
       assignToBuilder(def._formatted);
     } else {
       Object.keys(def).forEach(key => {
         if (def[key]) {
-          builder[key] = def[key];
+          if (builder[key]) {
+            builder[key] = mergePropertyDescriptions(builder[key], def[key]);
+          } else {
+            builder[key] = def[key];
+          }
         }
       });
     }
