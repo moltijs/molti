@@ -227,6 +227,54 @@ describe('Schema extending', () => {
       expect(s._formatted.bang).to.be.undefined;
     });
   });
+
+  it('should deep merge properties', () => {
+    const s = new Schema({
+      foo: {
+        required: false
+      }
+    }, new Schema({
+      foo: {
+        type: Schema.Types.Boolean,
+        required: true
+      }
+    }));
+
+    expect(s._formatted.foo.type).to.equal(Schema.Types.Boolean);
+  });
+
+  it('should handle undefined iterables while deep merging properties', () => {
+    let err;
+    try {
+      new Schema({
+        foo: {
+          type: Schema.Types.Boolean
+        }
+      }, { foo: undefined });
+    } catch(e) {
+      err = e;
+    }
+
+    expect(err).to.be.undefined;
+  });
+
+  it('should ignore undefined iterable properties in the base schema object', () => {
+    const s = new Schema({
+      foo: {
+        required: true
+      }
+    }, {
+      foo: {
+        type: undefined
+      }
+    }, {
+      foo: {
+        type: Schema.Types.String
+      }
+    });
+
+    expect(s._formatted.foo.type).to.equal(Schema.Types.String);
+  });
 });
 
 describe('Schema Types', () => {
