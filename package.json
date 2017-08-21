@@ -37,6 +37,7 @@
     "commitizen": "^2.9.6",
     "coveralls": "^2.13.1",
     "cross-env": "^5.0.1",
+    "cz-conventional-changelog": "^2.0.0",
     "eslint": "^4.3.0",
     "mocha": "^3.4.2",
     "nodemon": "^1.11.0",
@@ -49,5 +50,10 @@
     "reporter": [
       "lcov"
     ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
