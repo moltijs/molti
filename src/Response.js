@@ -1,3 +1,9 @@
+class ExtensibleFunction extends Function {
+  constructor(f) {
+    return Object.setPrototypeOf(f, new.target.prototype);
+  }
+}
+
 /**
  * @prop {string} name Name of the property
  * @prop {string} prop Type of property
@@ -7,7 +13,7 @@
  * @typedef ResponseAttr
  */
 
-class Response {
+class Response extends ExtensibleFunction {
   /**
    * Creates an instance of Response.
    * 
@@ -15,6 +21,7 @@ class Response {
    * @memberOf Response
    */
   constructor(statusCode, description) {
+    super((input) => this._responseHandler(input));
     this.statusCode = statusCode;
     this.description = description || '';
     this.attrs = [];
@@ -51,7 +58,7 @@ class Response {
     return this;
   }
 
-  name(name) {
+  alias(name) {
     this._name = name;
     return this;
   }
@@ -96,17 +103,23 @@ class Response {
     return this;
   }
 
-  getResp() {
-    return (handlerResult) => {
-      let statusCode = this.statusCode;
-      let response = {};
+  _responseHandler(handlerResult) {
+    let statusCode = this.statusCode;
+    let response = {};
 
-      this.attrs.forEach(attr => {
-        response[attr.name] = handlerResult[attr.name];
-      });
+    this.attrs.forEach(attr => {
+      response[attr.name] = handlerResult[attr.name];
+    });
 
-      return {response, statusCode};
+    return {
+      response,
+      statusCode,
+      origin: this
     };
+  }
+
+  getResp() {
+    return (handlerResult) => this._responseHandler(handlerResult);
   }
 }
 
