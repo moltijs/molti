@@ -33,8 +33,8 @@ class Handler {
     if (!isObject(options)) {
       throw new ReferenceError('Options object not passed to Handler');
     }
-    if (!isFunction(options.handler)) {
-      throw new ReferenceError('Handler.handler is not a function');
+    if (!isFunction(options.handler) && !isFunction(options.responder)) {
+      throw new ReferenceError('Handler.handler is not a function and Handler.responder is not a function');
     }
 
     let {
@@ -46,7 +46,8 @@ class Handler {
       handler,
       before = [],
       after = [],
-      skipDocs = false
+      skipDocs = false,
+      responder
     } = options;
 
     this.path = path;
@@ -58,6 +59,7 @@ class Handler {
     this.before = before;
     this.after = after;
     this.skipDocs = skipDocs;
+    this.responder = responder;
   }
 
   attachToController(ctrl) {
@@ -89,8 +91,16 @@ class Handler {
           let utils = {};
 
           this._controller._app._utils.forEach(async util => await util.call(utils, req));
+          let result;
+          if (this.handler) {
+            result = await this.handler(paramObj, responses, utils, req, res, next);
+          } else {
+            result = await this.responder(paramObj, utils, req, res, next);
 
-          let result = await this.handler(paramObj, responses, utils, req, res, next);
+            if (!this.responses.includes(result.origin)) {
+              return res.status(500).send(`Unknown response (${result.origin._name}) for ${this.path}`);
+            }
+          }
           if (isUndefined(result)) {
             res.status(500).send(`No result for ${this.path}`);
           } else {

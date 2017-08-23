@@ -12,7 +12,7 @@ describe('Response', () => {
   describe('description', () => {
     it('should be able to set the status, description, and name', () => {
       sampleResponse
-        .name('some name')
+        .alias('some name')
         .status(200)
         .describe('some description');
 
@@ -90,20 +90,33 @@ describe('Response', () => {
       let response = sampleResponse
         .status(200)
         .prop('prop1', 'string')
-        .prop('prop2', 'string')
-        .getResp()({
-          prop1: 'value 1',
-          prop2: 'value 2',
-          prop3: 'value 3'
-        });
-      
-      expect(response).to.be.eql({
+        .prop('prop2', 'string');
+      const data = {
+        prop1: 'value 1',
+        prop2: 'value 2',
+        prop3: 'value 3'
+      };
+      expect(response.getResp()(data)).to.be.eql({
         statusCode: 200,
+        origin: response,
         response: {
           prop1: 'value 1',
-          prop2: 'value 2'
+          prop2: 'value 2',
         }
       });
+    });
+    it('should be a function itself', () => {
+      const data = {
+        prop1: 'value 1',
+        prop2: 'value 2',
+        prop3: 'value 3'
+      };
+      let response = sampleResponse
+        .status(200)
+        .prop('prop1', 'string')
+        .prop('prop2', 'string');
+      
+      expect(response(data)).to.eql(response.getResp()(data));
     });
   });
 });

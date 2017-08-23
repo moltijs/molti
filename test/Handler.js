@@ -2,6 +2,14 @@ const { expect } = require('chai');
 const Handler = require('../src/Handler');
 
 describe('Handler', () => {
+  const simpleController = {
+    errorHandler(err){
+      throw err;
+    },
+    _app: {
+      _utils: []
+    }
+  };
   it('should block handlers without a configuration', () => {
     let error;
     try {
@@ -19,7 +27,7 @@ describe('Handler', () => {
     } catch(err) {
       error = err;
     }
-    expect(error.message).to.be.equal('Handler.handler is not a function');
+    expect(error.message).to.be.equal('Handler.handler is not a function and Handler.responder is not a function');
   });
 
   it('should be able to attach to an arbitrary "controller"', () => {
@@ -68,17 +76,83 @@ describe('Handler', () => {
         }
       }]
     });
-    sampleHandler._controller = {
-      errorHandler(err){
-        throw err;
-      },
-      _app: {
-        _utils: []
-      }
-    };
+    sampleHandler._controller = simpleController;
 
     let handler = sampleHandler.getRouteHandler();
     expect(typeof handler).to.be.equal('function');
+
+    await handler({}, mockResponse, null);
+  });
+
+  it('should create a route handler from a responder function', async () => {
+    let mockResponse = {
+      status: code => ({
+        send: data => {
+          expect(code).to.be.equal(200);
+          return { data, code };
+        }
+      })
+    };
+    let response = {
+      _name: 'success',
+      statusCode: 200,
+      getResp(){
+        return (response) => {
+          return {response, statusCode: 200};
+        };
+      }
+    };
+    response.origin = response;
+
+    let sampleHandler = new Handler({
+      responder() {
+        return response;
+      },
+      params: [],
+      responses: [response]
+    });
+    sampleHandler._controller = simpleController;
+
+    let handler = sampleHandler.getRouteHandler();
+
+    await handler({}, mockResponse, null);
+  });
+
+
+  it('should block an unknown response', async () => {
+    let mockResponse = {
+      status: code => ({
+        send: data => {
+          expect(code).to.equal(500);
+          expect(data).to.equal('Unknown response (success) for /');
+          return { data, code };
+        }
+      })
+    };
+    let response = {
+      _name: 'success',
+      statusCode: 200,
+      getResp(){
+        return (response) => {
+          return {response, statusCode: 200};
+        };
+      }
+    };
+    response.origin = response;
+    const someOtherResponse = {
+      getResp(){return () => {}}
+    };
+
+    let sampleHandler = new Handler({
+      responder() {
+        return response;
+      },
+      params: [],
+      responses: [someOtherResponse]
+    });
+    sampleHandler._controller = simpleController;
+
+    let handler = sampleHandler.getRouteHandler();
 
     await handler({}, mockResponse, null);
   });
@@ -92,14 +166,7 @@ describe('Handler', () => {
       params: [],
       responses: []
     });
-    sampleHandler._controller = {
-      errorHandler(err){
-        throw err;
-      },
-      _app: {
-        _utils: []
-      }
-    };
+    sampleHandler._controller = simpleController;
 
     await sampleHandler.getRouteHandler()({}, mockResponse, null);
   });

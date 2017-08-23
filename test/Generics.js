@@ -12,7 +12,7 @@ describe('generics', () => {
     responses.forEach(type => {
       let response = Generics.responses[type];
 
-      if (is(Function)(response)) {
+      if (!is(Response)(response)) {
         response = response('');
       }
 
