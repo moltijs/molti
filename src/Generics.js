@@ -57,83 +57,83 @@ module.exports = {
   responses: {
     get accepted () {
       return new Response(202)
-        .name('accepted')
+        .alias('accepted')
         .prop('message', 'string');
     },
     get success () {
       return new Response(200)
-        .name('success')
+        .alias('success')
         .prop('message', 'string');
     },
   
     get found () {
       return new Response(200)
-        .name('found')
+        .alias('found')
         .prop('record', 'object');
     },
   
     foundModel (modelName) {
       return new Response(200)
-        .name('found')
+        .alias('found')
         .ref('record', modelName);
     },
   
     get foundList () {
       return new Response(200)
-        .name('foundList')
+        .alias('foundList')
         .propList('records', 'object');
     },
   
     foundModelList (modelName) {
       return new Response(200)
-        .name('foundList')
+        .alias('foundList')
         .refList('records', modelName);
     },
   
     get created () {
       return new Response(201)
-        .name('created')
+        .alias('created')
         .prop('record', 'object');
     },
   
     createdModel (modelName) {
       return new Response(201)
-        .name('created')
+        .alias('created')
         .ref('record', modelName);
     },
 
     get noContent () {
       return new Response(204)
-        .name('noContent');
+        .alias('noContent');
     },
   
     get badRequest () {
       return new Response(400)
-        .name('badRequest')
+        .alias('badRequest')
         .prop('message', 'string');
     },
   
     get unauthorized () {
       return new Response(401)
-        .name('unauthorized')
+        .alias('unauthorized')
         .prop('message', 'string');
     },
   
     get forbidden () {
       return new Response(403)
-        .name('forbidden')
+        .alias('forbidden')
         .prop('message', 'string');
     },
   
     get notFound () {
       return new Response(404)
-        .name('notFound')
+        .alias('notFound')
         .prop('message', 'string');
     },
   
     get internalError () {
       return new Response(500)
-        .name('internalError')
+        .alias('internalError')
         .prop('message', 'string')
         .prop('stack', 'string');
     }
