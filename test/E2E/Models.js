@@ -4,7 +4,9 @@ const ModelFactory = require('../../src/ModelFactory');
 
 const hospitalSchema = new Schema({
   doctors: {
-    type: Schema.Types.Models
+    type: Schema.Types.Models,
+    description: '',
+    default: ''
   }
 });
 
@@ -17,7 +19,9 @@ class Hospital extends ModelFactory(hospitalSchema, { autoRestEnabled: true }) {
 const doctorSchena = new Schema({
   patients: {
     type: Schema.Types.Models,
-    through: true
+    through: true,
+    description: '',
+    default: ''
   }
 });
 

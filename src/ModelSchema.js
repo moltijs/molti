@@ -153,6 +153,9 @@ class Schema {
       let { type } = this._formatted[key];
       withRefs.properties[key] = primitiveTypes[type](this._formatted[key], key);
 
+      withRefs.properties[key].description = this._formatted[key].description;
+      withRefs.properties[key].default = this._formatted[key].default;
+
       if (![Types.Model, Types.Models].includes(type)) {
         withoutRefs.properties[key] = withRefs.properties[key];
       }
