@@ -180,6 +180,8 @@ Schema.extending = function (schemaDefinition, ...base) {
     Object.keys(right).forEach(key => {
       if (right[key] !== undefined) {
         left[key] = right[key];
+      } else if(left[key]) {
+        delete left[key];
       }
     });
 
