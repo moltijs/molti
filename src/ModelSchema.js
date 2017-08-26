@@ -97,7 +97,6 @@ class Schema {
    */
   constructor(schemaDefinition, ...args) {
     if (args.length > 0) {
-      console.log('here');
       return Schema.extending(schemaDefinition, ...args);
     }
 
@@ -190,7 +189,6 @@ Schema.extending = function (schemaDefinition, ...base) {
   }
 
   function assignToBuilder (def) {
-    // console.log(def);
     if (def instanceof Schema) {
       assignToBuilder(def._formatted);
     } else {

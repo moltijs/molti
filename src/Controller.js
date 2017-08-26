@@ -1,7 +1,7 @@
 //@ts-check
 const { isNil, pluck } = require('ramda');
 const { Router } = require('express');
-const { Handler } = require('.');
+const Handler = require('./Handler');
 
 class Controller {
   /**
