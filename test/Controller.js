@@ -48,11 +48,11 @@ describe('Controller', () => {
     ];
     sampleController = new Controller(controllerConfig);
     
-    expect(sampleController._before).to.be
+    expect(sampleController._before).to
       .equal(controllerConfig.before);
 
     expect(sampleController._router.stack[0].handle)
-      .to.be.equal(controllerConfig.before[0]);
+      .to.equal(controllerConfig.before[0]);
 
     expect(sampleController._after).to.be.eql(controllerConfig.after);
 
@@ -148,16 +148,17 @@ describe('Controller', () => {
         statusCode: 200,
         toSwagger: () => ({})
       }],
+      handler(){},
       getRouteHandler(){
         return () => {};
       },
       before: [],
       after: []
     };
+    
+    handler = sampleController._handle(handler);
 
-    sampleController._handle(handler);
-
-    expect(handler._controller).to.be.equal(sampleController);
+    expect(handler._controller).to.equal(sampleController);
     expect(sampleController._paths['/somePath'].get).to.be.eql({
       summary: handler.description,
       tags: ['Sample'],
@@ -167,13 +168,14 @@ describe('Controller', () => {
       }
     });
   });
-
+  
   it('should be able to handle a hidden handler', () => {
     let handler = {
       description: 'handler description',
       path: '/someHiddenPath',
       method: 'get',
       skipDocs: true,
+      handler(){},
       getRouteHandler(){
         return () => {};
       },
@@ -181,7 +183,7 @@ describe('Controller', () => {
       after: []
     };
 
-    sampleController._handle(handler);
+    handler = sampleController._handle(handler);
 
     expect(handler._controller).to.be.equal(sampleController);
     expect(sampleController._paths['/someHiddenPath']).to.be.undefined;
@@ -202,6 +204,24 @@ describe('Controller', () => {
 
     expect(newHandler).to.be.an.instanceOf(Handler);
     expect(newHandler._controller).to.equal(sampleController);
+  });
+
+
+  it('should determine a handler\'s full path', () => {
+    sampleController._basePath = '/v1/';
+
+    let handler = {
+      path: '/somePath',
+      handler() {},
+      before: [],
+      params: [],
+      responses: [],
+      after: []
+    };
+
+    let newHandler = sampleController.handler(handler);
+
+    expect(newHandler._fullPath).to.equal('/v1/somePath');
   });
 
   it('should have handler helpers', () => {

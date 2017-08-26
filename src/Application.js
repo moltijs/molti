@@ -77,6 +77,25 @@ class Application extends express {
       }
     });
     controllers.forEach(ctrl => ctrl.attachToApp(this));
+
+    this.onEach = {
+      handler: {
+        before: fn => {
+          this.controllers.forEach(controller => controller.handlers.forEach(handler => handler.before.push(fn.bind(handler))));
+        },
+        after: fn => {
+          this.controllers.forEach(controller => controller.handlers.forEach(handler => handler.after.push(fn.bind(handler))));
+        }
+      },
+      controller: {
+        before: fn => {
+          this.controllers.forEach(controller => controller.before.push(fn.bind(controller)));
+        },
+        after: fn => {
+          this.controllers.forEach(controller => controller.after.push(fn.bind(controller)));
+        }
+      }
+    };
   }
 
   static get Controller() {

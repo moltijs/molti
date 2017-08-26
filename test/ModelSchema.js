@@ -257,24 +257,6 @@ describe('Schema extending', () => {
 
     expect(err).to.be.undefined;
   });
-
-  it('should ignore undefined iterable properties in the base schema object', () => {
-    const s = new Schema({
-      foo: {
-        required: true
-      }
-    }, {
-      foo: {
-        type: undefined
-      }
-    }, {
-      foo: {
-        type: Schema.Types.String
-      }
-    });
-
-    expect(s._formatted.foo.type).to.equal(Schema.Types.String);
-  });
 });
 
 describe('Schema Types', () => {

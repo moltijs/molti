@@ -67,6 +67,48 @@ describe('Application', () => {
     expect(isExpressRouter(sampleApplication)).to.be.true;
   });
 
+  it('should be able to have middleware attached to each controller', () => {
+    const app = new Application();
+    app.controllers = [{
+      before: [],
+      after: []
+    }];
+
+    app.onEach.controller.before(function() {
+      expect(this).to.equal(app.controllers[0]);
+    });
+
+    app.onEach.controller.after(function() {
+      expect(this).to.equal(app.controllers[0]);
+    });
+
+    app.controllers[0].before[0]();
+    app.controllers[0].after[0]();
+  });
+
+
+
+  it('should be able to have middleware attached to each handler', () => {
+    const app = new Application();
+    app.controllers = [{
+      handlers: [{
+        before: [],
+        after: []
+      }],
+    }];
+
+    app.onEach.handler.before(function() {
+      expect(this).to.equal(app.controllers[0].handlers[0]);
+    });
+
+    app.onEach.handler.after(function() {
+      expect(this).to.equal(app.controllers[0].handlers[0]);
+    });
+
+    app.controllers[0].handlers[0].before[0]();
+    app.controllers[0].handlers[0].after[0]();
+  });
+
   it('should have a basic default error handler', () => {
     let statusCode, errorResponse;
     let sampleRes = {

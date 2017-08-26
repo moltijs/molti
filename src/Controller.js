@@ -27,6 +27,8 @@ class Controller {
       this._router.use(...this._before);
     }
 
+    this.handlers = handlers;
+
     handlers.forEach(handler => {
       handler.attachToController(this);
     });
@@ -37,7 +39,7 @@ class Controller {
     Object.keys(this._paths)
       .forEach(path => {
         // convert /v1/api/:id -> /v1/api/{id}
-        let swaggerPath = path.replace(/\/(\:(\w+))/g, (subRoute, param, paramName) => subRoute.replace(param, `{${paramName}}`));
+        let swaggerPath = path.replace(/\/(:(\w+))/g, (subRoute, param, paramName) => subRoute.replace(param, `{${paramName}}`));
 
         paths[swaggerPath] = this._paths[path];
       });
@@ -69,7 +71,12 @@ class Controller {
   }
 
   _handle(handler) {
+    if (!(handler instanceof Handler)) handler = new Handler(handler);
+
+    this.handlers.push(handler);
+
     let basePath = (this._basePath + handler.path).replace(/\/\//g, '/');
+    handler._fullPath = basePath;
     handler._controller = this;
 
     if (!handler.skipDocs) {
@@ -90,7 +97,8 @@ class Controller {
       };
     }
     let routeHandler = handler.getRouteHandler().bind(handler);
-    return this._router[handler.method](handler.path, ...handler.before, routeHandler, ...handler.after);
+    this._router[handler.method](handler.path, ...handler.before, routeHandler, ...handler.after);
+    return handler;
   }
   get(handler) {
     handler.method = 'get';

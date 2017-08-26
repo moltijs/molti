@@ -88,7 +88,8 @@ class Handler {
         let errorHandler = this._controller.errorHandler;
 
         try {
-          let utils = {};
+          req.fullPath = this._fullPath;
+          let utils = { fullPath: this._fullPath };
 
           this._controller._app._utils.forEach(async util => await util.call(utils, req));
           let result;
